@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { fetchPublicImage, identifySource } from "@/lib/discovery/safe-web";
+import { identifySource } from "@/lib/discovery/safe-web";
 import { discoverySourceTypes, type DiscoverySourceType } from "@/types/discovery";
 
 export type DiscoveryActionState =
@@ -157,7 +157,7 @@ async function approveItem(id: string, userId: string) {
     project_fit_tags: item.project_fit_tags ?? [],
     status: "sourcing",
     rating: "unrated",
-    portfolio_url: item.source_url,
+    portfolio_url: item.portfolio_url || item.source_url,
     source_url: item.source_url,
     public_profile: item.description,
     source_type: item.source_type,
@@ -174,6 +174,7 @@ async function approveItem(id: string, userId: string) {
     ai_interview_questions: evaluation?.interview_questions ?? [],
     ai_model: evaluation ? "gpt-5.4-mini" : null,
     ai_evaluated_at: evaluation ? new Date().toISOString() : null,
+    ai_rubric_version_id: item.preliminary_ai_rubric_version_id ?? null,
     created_by: userId,
     updated_by: userId,
   }).select("id").single();
@@ -182,20 +183,9 @@ async function approveItem(id: string, userId: string) {
     throw new Error(insertError.message);
   }
 
-  if (item.thumbnail_url) {
-    try {
-      const image = await fetchPublicImage(item.thumbnail_url);
-      const extension = image.contentType === "image/jpeg" ? "jpg" : image.contentType.split("/")[1];
-      const imagePath = `${candidate.id}/${crypto.randomUUID()}.${extension}`;
-      const { error: imageError } = await supabase.storage.from("candidate-images").upload(imagePath, image.bytes, { contentType: image.contentType, upsert: false });
-      if (!imageError) await supabase.from("candidates").update({ image_path: imagePath, work_image_count: 1 }).eq("id", candidate.id);
-    } catch {
-      // A remote thumbnail is optional. Approval remains human-controlled and can continue without it.
-    }
-  }
-
   const { error: updateError } = await supabase.from("discovery_items").update({
     status: "approved",
+    research_status: "approved",
     candidate_id: candidate.id,
     reviewed_at: new Date().toISOString(),
     reviewed_by: userId,
@@ -203,6 +193,17 @@ async function approveItem(id: string, userId: string) {
   if (updateError) {
     await supabase.from("candidates").delete().eq("id", candidate.id);
     throw new Error(updateError.message);
+  }
+
+  const { data: existingImages } = await supabase.from("candidate_portfolio_images").select("id").eq("discovery_item_id", item.id);
+  if (existingImages?.length) {
+    await supabase.from("candidate_portfolio_images").update({ candidate_id: candidate.id, discovery_item_id: null }).eq("discovery_item_id", item.id);
+  } else if (item.thumbnail_url) {
+    await supabase.from("candidate_portfolio_images").insert({
+      candidate_id: candidate.id, external_url: item.thumbnail_url, source_url: item.thumbnail_url, source_page_url: item.source_url,
+      usage_status: "link_only", rights_note: "Discovery承認時にリンクのみ移行。保存・AI送信は未許可。",
+      selected_for_ai_review: false, image_order: 1, created_by: userId,
+    });
   }
 }
 
@@ -218,6 +219,7 @@ export async function reviewDiscoveryItemAction(
     const supabase = await createClient();
     const { error } = await supabase.from("discovery_items").update({
       status: decision === "reject" ? "rejected" : "duplicate",
+      research_status: decision === "reject" ? "rejected" : "duplicate",
       reviewed_at: new Date().toISOString(),
       reviewed_by: user.id,
     }).eq("id", id).eq("status", "new");
@@ -240,6 +242,7 @@ export async function bulkReviewDiscoveryAction(formData: FormData) {
       const supabase = await createClient();
       const { error } = await supabase.from("discovery_items").update({
         status: decision === "reject" ? "rejected" : "duplicate",
+        research_status: decision === "reject" ? "rejected" : "duplicate",
         reviewed_at: new Date().toISOString(),
         reviewed_by: user.id,
       }).eq("id", id).eq("status", "new");
@@ -249,6 +252,26 @@ export async function bulkReviewDiscoveryAction(formData: FormData) {
   revalidatePath("/discovery");
   revalidatePath("/candidates");
   revalidatePath("/dashboard");
+}
+
+export async function updateDiscoveryResearchAction(id: string, formData: FormData) {
+  const user = await requireUser();
+  if (!z.string().uuid().safeParse(id).success) throw new Error("候補IDが不正です。");
+  const status = z.enum(["new", "reviewing", "needs_more_info", "ready_for_ai_review", "ready_for_approval", "approved", "rejected", "duplicate"]).parse(String(formData.get("research_status")));
+  const notes = String(formData.get("notes_for_review") ?? "").trim().slice(0, 5000);
+  const supabase = await createClient();
+  const payload: Record<string, unknown> = {
+    research_status: status,
+    assigned_to: formData.get("assign_to_me") === "on" ? user.id : null,
+    notes_for_review: notes || null,
+    last_verified_at: formData.get("verified_now") === "on" ? new Date().toISOString() : undefined,
+    updated_by: user.id,
+  };
+  if (payload.last_verified_at === undefined) delete payload.last_verified_at;
+  const { error } = await supabase.from("discovery_items").update(payload).eq("id", id);
+  if (error) throw new Error(error.message);
+  await supabase.from("audit_events").insert({ event_type: "discovery.research_updated", resource_type: "discovery_item", resource_id: id, metadata: { status, verified: formData.get("verified_now") === "on" }, actor_id: user.id });
+  revalidatePath("/discovery/research");
 }
 
 function parseCsv(text: string) {

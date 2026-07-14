@@ -16,7 +16,7 @@ function isPrivateIp(address: string) {
   return parts[0] === 10 || parts[0] === 127 || parts[0] === 0 || (parts[0] === 169 && parts[1] === 254) || (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) || (parts[0] === 192 && parts[1] === 168) || (parts[0] === 100 && parts[1] >= 64 && parts[1] <= 127) || parts[0] >= 224;
 }
 
-async function assertPublicUrl(input: string) {
+export async function assertPublicUrl(input: string) {
   const url = new URL(input);
   if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) throw new Error("公開http(s) URLだけを指定できます。");
   if (url.hostname === "localhost" || url.hostname.endsWith(".local") || isIP(url.hostname) && isPrivateIp(url.hostname)) throw new Error("プライベートネットワークのURLは取得できません。");
@@ -135,6 +135,7 @@ export function identifySource(url: URL): DiscoverySourceType {
   if (host === "behance.net" || host.endsWith(".behance.net")) return "behance";
   if (host === "artstation.com" || host.endsWith(".artstation.com")) return "artstation";
   if (host === "linkedin.com" || host.endsWith(".linkedin.com")) return "linkedin";
+  if (host === "cgarchitect.com" || host.endsWith(".cgarchitect.com")) return "cgarchitect";
   return "website";
 }
 
