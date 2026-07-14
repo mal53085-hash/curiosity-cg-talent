@@ -1,0 +1,18 @@
+"use client";
+
+import { useState } from "react";
+import { Check, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { CalibrationSample } from "@/lib/calibration/data";
+
+type Rubric = { id: string; version: number; axes: Array<{ key: string; label: string }> };
+export function ReviewSampling({ samples, rubric }: { samples: CalibrationSample[]; rubric: Rubric }) {
+  return <div className="mt-7"><div className="flex items-center justify-between"><p className="text-xs text-muted">抽出 {samples.length}件</p><p className="font-mono text-[10px] text-muted">rubric v{rubric.version}</p></div>{samples.length ? <div className="mt-4 grid gap-4 xl:grid-cols-2">{samples.map((sample) => <ReviewCard key={sample.id} sample={sample} rubric={rubric} />)}</div> : <section className="mt-4 rounded-xl border bg-surface px-6 py-16 text-center"><h2 className="text-sm font-medium">レビュー対象はありません</h2><p className="mt-2 text-xs text-muted">AI評価済み候補が増えると、高得点・低得点・差分・不安定順位から自動抽出されます。</p></section>}</div>;
+}
+
+function ReviewCard({ sample, rubric }: { sample: CalibrationSample; rubric: Rubric }) {
+  const [scores, setScores] = useState<Record<string, number>>(Object.fromEntries(rubric.axes.map((axis) => [axis.key, sample.ai_scores[axis.key as keyof typeof sample.ai_scores] ?? 50])));
+  const [comments, setComments] = useState(""); const [pending, setPending] = useState(false); const [message, setMessage] = useState<string | null>(null);
+  async function save() { setPending(true); setMessage(null); try { const response = await fetch("/api/calibration/reviews", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ candidate_id: sample.id, rubric_version_id: rubric.id, sample_reasons: sample.reasons, human_scores: scores, comments }) }); const body = await response.json() as { error?: string; score_difference?: number }; if (!response.ok) throw new Error(body.error || "保存できませんでした。"); setMessage(`保存しました。AIとの差 ${Number(body.score_difference).toFixed(1)}点`); } catch (error) { setMessage(error instanceof Error ? error.message : "保存できませんでした。"); } finally { setPending(false); } }
+  return <article className="rounded-xl border bg-surface p-5"><div className="flex items-start justify-between gap-4"><div><h2 className="font-medium">{sample.full_name}</h2><div className="mt-2 flex flex-wrap gap-1.5">{sample.reasons.map((reason) => <span key={reason} className="rounded-full border px-2 py-1 text-[10px] text-muted">{reason}</span>)}</div></div><div className="text-right"><p className="font-mono text-xl">{sample.ai_score}</p><p className="text-[10px] text-muted">AI overall</p></div></div><div className="mt-5 grid gap-3 sm:grid-cols-2">{rubric.axes.map((axis) => <label key={axis.key} className="rounded-lg border bg-[#faf9f5] p-3"><span className="flex items-center justify-between text-[11px]"><span>{axis.label}</span><span className="font-mono">AI {sample.ai_scores[axis.key as keyof typeof sample.ai_scores] ?? "—"} / Human {scores[axis.key]}</span></span><input type="range" min={0} max={100} step={1} value={scores[axis.key]} onChange={(event) => setScores({ ...scores, [axis.key]: Number(event.target.value) })} className="mt-3 w-full accent-[#252522]" /></label>)}</div><textarea value={comments} onChange={(event) => setComments(event.target.value)} maxLength={5000} rows={3} placeholder="人間評価コメント" className="mt-4 w-full rounded-lg border bg-white px-3 py-2 text-xs" /><Button className="mt-3" disabled={pending} onClick={save}>{pending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}人間評価を保存</Button>{message ? <p className="mt-3 text-xs text-muted">{message}</p> : null}</article>;
+}
