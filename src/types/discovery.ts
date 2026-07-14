@@ -4,6 +4,8 @@ export const discoverySourceTypes = [
   "artstation",
   "linkedin",
   "website",
+  "cgarchitect",
+  "company",
 ] as const;
 
 export const discoveryItemStatuses = [
@@ -15,6 +17,18 @@ export const discoveryItemStatuses = [
 
 export type DiscoverySourceType = (typeof discoverySourceTypes)[number];
 export type DiscoveryItemStatus = (typeof discoveryItemStatuses)[number];
+
+export const discoveryResearchStatuses = [
+  "new",
+  "reviewing",
+  "needs_more_info",
+  "ready_for_ai_review",
+  "ready_for_approval",
+  "approved",
+  "rejected",
+  "duplicate",
+] as const;
+export type DiscoveryResearchStatus = (typeof discoveryResearchStatuses)[number];
 
 export type DiscoverySource = {
   id: string;
@@ -34,6 +48,7 @@ export type DiscoveryItem = {
   source_id: string | null;
   source_type: DiscoverySourceType;
   source_url: string;
+  portfolio_url: string | null;
   external_id: string | null;
   title: string;
   author_name: string;
@@ -49,6 +64,12 @@ export type DiscoveryItem = {
   thumbnail_url: string | null;
   portfolio_image_urls: string[];
   status: DiscoveryItemStatus;
+  research_status: DiscoveryResearchStatus;
+  assigned_to: string | null;
+  last_verified_at: string | null;
+  notes_for_review: string | null;
+  research_quality_score: number;
+  next_required_fields: string[];
   preliminary_ai_score: number | null;
   preliminary_ai_summary: string | null;
   preliminary_ai_evaluation: Record<string, unknown> | null;
@@ -80,6 +101,8 @@ export const sourceTypeLabels: Record<DiscoverySourceType, string> = {
   artstation: "ArtStation",
   linkedin: "LinkedIn",
   website: "Webサイト",
+  cgarchitect: "CGArchitect",
+  company: "会社プロフィール",
 };
 
 export const discoveryStatusLabels: Record<DiscoveryItemStatus, string> = {
@@ -87,4 +110,15 @@ export const discoveryStatusLabels: Record<DiscoveryItemStatus, string> = {
   approved: "承認済み",
   rejected: "見送り",
   duplicate: "重複",
+};
+
+export const researchStatusLabels: Record<DiscoveryResearchStatus, string> = {
+  new: "New",
+  reviewing: "Reviewing",
+  needs_more_info: "Needs More Info",
+  ready_for_ai_review: "Ready for AI Review",
+  ready_for_approval: "Ready for Approval",
+  approved: "Approved",
+  rejected: "Rejected",
+  duplicate: "Duplicate",
 };

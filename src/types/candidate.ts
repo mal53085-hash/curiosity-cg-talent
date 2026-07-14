@@ -23,6 +23,10 @@ export const aiCriterionKeys = [
   "detail",
   "finish",
   "technical_adaptability",
+  "hospitality_fit",
+  "retail_fit",
+  "artificial_lighting",
+  "design_understanding",
 ] as const;
 
 export type AiCriterionKey = (typeof aiCriterionKeys)[number];
@@ -51,7 +55,7 @@ export type Candidate = {
   employment_types: string[];
   work_location_preferences: string[];
   expected_salary_jpy: number | null;
-  source_type?: "manual" | "behance" | "artstation" | "linkedin" | "website";
+  source_type?: "manual" | "behance" | "artstation" | "linkedin" | "website" | "cgarchitect" | "company";
   external_id?: string | null;
   discovered_at?: string | null;
   discovery_item_id?: string | null;
@@ -71,6 +75,7 @@ export type Candidate = {
   ai_interview_questions: string[];
   ai_model: string | null;
   ai_evaluated_at: string | null;
+  ai_rubric_version_id?: string | null;
   created_by: string;
   updated_by: string | null;
   created_at: string;
@@ -107,4 +112,8 @@ export const aiCriterionLabels: Record<AiCriterionKey, string> = {
   detail: "ディテール",
   finish: "仕上げ",
   technical_adaptability: "技術適応力",
+  hospitality_fit: "ホテル適性",
+  retail_fit: "リテール適性",
+  artificial_lighting: "人工照明表現",
+  design_understanding: "デザイン理解",
 };
