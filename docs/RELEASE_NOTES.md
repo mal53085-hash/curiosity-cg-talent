@@ -1,5 +1,19 @@
 # dig Release Notes
 
+## 2026-07-14 — Phase 4.5 Candidate Acquisition & Production Validation
+
+- URL一括（最大100）、汎用CSV列マッピング・プレビュー・エラー/重複確認、手動簡易登録
+- `Acquisition`から自動正式登録せずDiscovery Inbox / Research Queueへ仮登録
+- New〜Duplicateの8調査状態、担当、確認日時、調査品質、次に必要な項目
+- 候補者/Discovery候補ごとに作品最大12枚、出典、確認日、4段階usage、権利メモ、AI選択を管理
+- private `candidate-portfolio-images`、magic bytes、実デコード、WebP再エンコード、EXIF除去、Storage連動削除
+- DQ60、公開プロフィール、見送り/重複除外、許可済み保存画像によるAI Review Eligibility
+- Curiosity 12軸rubricのversion管理、AI評価へのversion保存、Review SamplingとAI/人間差
+- Search Qualityの20/50名ゲート、Precision、人間差、検索別候補数、14項目の本番検証履歴
+- Phase 4.5 migration 8テーブル、RLS、private bucket、Storage policy、Advisor indexを本番適用
+- 自動テストはCSV 100件、重複、private/metadata URL、unknown画像拒否、50名相当性能を含む15件に合格
+- 実候補者は1名のため検索精度は未評価。機能検証と精度評価を分離して継続する
+
 ## 2026-07-14 — Phase 3.5 Data Quality / Phase 4 Visual Search
 
 - 10指標のデータ充足ダッシュボードと候補者別0〜100品質スコア

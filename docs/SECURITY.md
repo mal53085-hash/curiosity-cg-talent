@@ -55,8 +55,20 @@
 - OpenAIには参考画像、検索条件、候補者UUID、公開プロフィール、スキル/ソフト、既存の画像ベース8軸評価、強み/懸念/推奨案件だけを送る。メール、電話、住所、社内メモ、認証IDは送らない。
 - 人物特定、顔認識、センシティブ属性推定、自動不採用を禁止し、Structured OutputsをZod検証する。
 
+## Candidate Acquisition / 作品画像境界
+
+- URL一括とCSVは1回100件まで。登録前に対応、未対応、重複、新規、保存予定項目を表示し、人の確認後だけDiscovery Inboxへ登録する。
+- CSVのメール、電話、住所列はマッピング対象外で、`raw_input`にも保存しない。
+- LinkedInはURL、手入力、CSVだけを扱い、本文・検索結果の自動大量取得を行わない。
+- サーバーが外部URLへ接続する経路はDNS解決後もprivate IP、localhost、link-local、metadata endpointを拒否し、最大2 redirect、7秒、HTML 512KB、画像8MBを上限とする。
+- 公開画像URLは`link_only`で参照するだけとし、全画像の自動コピーを行わない。保存コピーは利用者が許可根拠を記録してアップロードする。
+- `unknown`と`link_only`はDB eligibility、AI Route Handler、UIの3層でOpenAI送信対象外にする。
+- `candidate-portfolio-images`はprivate bucket。8MB、JPEG/PNG/WebP、ユーザーフォルダupload、認証済みread/delete policyを適用する。
+- 候補者削除時はStorage APIでlegacy画像と作品画像を先に削除し、その後DB行を削除する。Discovery候補の画像削除も同じ順序にする。
+- 評価基準は外部テキストではなく内部versionデータだが、プロンプト内ではデータとして隔離し、system instructionを上書きできないようにする。
+
 ## 運用確認
 
 - Vercelログを`CRON_SECRET`、`SUPABASE_SECRET_KEY`、`OPENAI_API_KEY`、`Bearer`、`sk-`、`sb_secret_`のパターンで確認する。
 - Supabase Security/Performance Advisorをmigration適用後とリリース前に確認する。
-- 2026-07-14のPhase 4適用後もSecurity Advisorの重大指摘は0。Advisor APIは`Leaked Password Protection Disabled`警告を返す一方、Dashboardでは有効化済みとの申告がある。Authentication > Attack Protectionで対象project ref `vrfsaasawsgwxzgsnatk`、設定ON、保存完了を手動確認し、反映後にAdvisorを再実行する。これはDashboard設定状態であり、Phase 3.5/4のコードやmigrationをブロックしない。
+- 2026-07-14のPhase 4.5適用後もSecurity Advisorの重大指摘は0。最新Advisor APIは`Leaked Password Protection Disabled`警告を返す一方、Dashboardでは有効化・再デプロイ済みとの申告がある。Authentication > Attack Protectionで対象project ref `vrfsaasawsgwxzgsnatk`、設定ON、保存完了を手動確認し、数分後にAdvisorを再実行する。これはDashboard/Auth設定の反映状態であり、アプリコードやPhase 4.5 migrationの問題ではなく、実装をブロックしない。

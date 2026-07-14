@@ -11,7 +11,7 @@ Browser
   -> Next.js App Router / Vercel
       -> Supabase Auth (session verification)
       -> Supabase PostgreSQL (RLS)
-      -> Supabase Storage (private candidate-images / visual-search-quarantine / visual-search-references)
+      -> Supabase Storage (private candidate-images / candidate-portfolio-images / visual-search-quarantine / visual-search-references)
       -> OpenAI Responses API (server-only, selected public fields only)
       -> Vercel Cron (CRON_SECRET)
 ```
@@ -71,3 +71,25 @@ OpenAIへ送る候補情報は、候補者ID、公開プロフィール、職種
 - APIはユーザー単位で短時間の回数制限を行う。
 - AIエラー時は途中runを`failed`にし、秘密値を含まない利用者向けメッセージを返す。
 - 全結果に「判断材料」「自動不採用禁止」を表示する。
+
+## Phase 4.5 Candidate Acquisitionデータフロー
+
+```text
+URL（最大100）/ CSV（最大100）/ 手動公開情報
+  -> 構文・private host・列・件数検証
+  -> 対応 / 未対応 / 重複 / 新規をプレビュー
+  -> 人間の一括確認
+  -> acquisition_batches / acquisition_batch_items
+  -> discovery_items (Research Queue)
+  -> 公開情報・出典・確認日時を人が補完
+  -> 作品画像をリンク参照、または許可済みコピーとして登録
+  -> AI Review Eligibility
+  -> 人が承認した場合だけcandidatesへ移行
+```
+
+- `candidate_portfolio_images`は候補者またはDiscovery候補のどちらか一方を親とし、`image_order` 1〜12の一意制約で最大12枚にする。
+- 公開URL画像は`link_only`として記録し、サーバーは自動保存しない。アップロードはmagic bytes、Sharp decode、WebP再エンコードを通し、EXIFを除去する。
+- AI本評価・仮評価は、`selected_for_ai_review=true`かつ`review_copy_authorized`または`internal_reference_authorized`のprivate Storage画像だけを読む。
+- `evaluation_rubric_versions`は追記型で、AI評価結果に当時のversion IDを保存する。
+- `human_candidate_reviews`はAIスナップショット、人間の12軸、平均絶対差、抽出理由を保存する。
+- `validation_checklist_runs`は本番検証を履歴として追記し、過去の失敗や再確認を上書きしない。
