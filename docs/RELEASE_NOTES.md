@@ -1,5 +1,17 @@
 # dig Release Notes
 
+## 2026-07-14 — Phase 3.5 Data Quality / Phase 4 Visual Search
+
+- 10指標のデータ充足ダッシュボードと候補者別0〜100品質スコア
+- Candidates / Discovery Inboxの確認付き一括補完
+- Scoutテストケース、想定/実順位、Precision@3/5、サンプル状態、version保存
+- 権利確認付き参考画像1〜5枚、非公開隔離・保存Storage、30日保持、即時削除
+- magic bytes、実デコード、8MB、SVG拒否、WebP再エンコードによるEXIF除去
+- 視覚特徴のStructured Outputs、DB事前抽出、上位20名だけ再評価、最大10名表示
+- 10分3回、日次上限、利用画像/候補/token記録、期限削除Cron、監査イベント
+- 本番DB migration適用済み。RLS 9テーブル、private bucket 2個、Storage所有者policy 4個を確認
+- 候補者は1名（品質60点）のため、機能動作とセキュリティ検証のみ。検索精度はサンプル不足で未評価
+
 ## 2026-07-14 — Phase 3 AI Scout
 
 - 自然言語要件の構造化フィルター変換

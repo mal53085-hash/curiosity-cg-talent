@@ -11,7 +11,7 @@ Browser
   -> Next.js App Router / Vercel
       -> Supabase Auth (session verification)
       -> Supabase PostgreSQL (RLS)
-      -> Supabase Storage (private candidate-images)
+      -> Supabase Storage (private candidate-images / visual-search-quarantine / visual-search-references)
       -> OpenAI Responses API (server-only, selected public fields only)
       -> Vercel Cron (CRON_SECRET)
 ```
@@ -46,6 +46,24 @@ OpenAIへ送る候補情報は、候補者ID、公開プロフィール、職種
 - `scout_runs`: 実行単位。自然言語、構造化条件、状態、件数、モデル、エラー概要を保持する。
 - `scout_results`: 候補者ごとの順位、Scout適合点、根拠、強み、懸念、案件、質問を保持する。
 - AI Scout適合点は要件相対の指標であり、候補者の既存AI総合点と混同しない。
+
+## Phase 3.5 / Phase 4 データフロー
+
+候補者の14分類を重み付きで集計し、`data_quality_score`と不足項目をDB triggerで更新する。Scoutテストは想定上位候補、実順位、Precision@3/5、Scout versionを保存し、候補者20名未満を必ず`insufficient`とする。
+
+```text
+権利確認 + 参考画像1〜5枚
+  -> browser: private quarantine bucket（8MB/MIME上限）
+  -> server: magic bytes + Sharp decode
+  -> rotate + WebP再エンコード（EXIF/メタデータ除去）
+  -> private references bucket（30日）
+  -> OpenAIで構造化視覚特徴を抽出
+  -> DBで全候補を事前順位化
+  -> 上位20名以下の既存画像ベース8軸評価・公開職務情報だけを再ランキング
+  -> 最大10名をvisual_search_resultsへ保存
+```
+
+`visual_searches`削除時はStorage APIで画像を先に削除し、DBの外部キー削除連動でrun/result/image行を削除する。日次Cronも同じ順序で期限切れ検索を削除し、`audit_events`へ件数だけを残す。
 
 ## 非機能要件
 

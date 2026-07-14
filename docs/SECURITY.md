@@ -45,8 +45,18 @@
 - 文面生成は候補者・ユーザー単位で同等の制限を設ける。
 - OpenAIやSupabaseのエラー本文をそのままクライアントへ返さない。
 
+## Visual Search画像境界
+
+- 権利または許可を持つという利用者チェックを必須にする。システムは権利を保証しない。
+- 1〜5枚、1枚8MB以下、JPEG/PNG/WebPのみ。SVGを禁止し、拡張子や申告MIMEを信用せずmagic bytesとSharp decodeを検証する。
+- raw画像は非公開quarantineへ一時送信し、サーバーでWebPへ再エンコードしてEXIF等を除去後、非公開referencesへ保存する。quarantineは成功・失敗時に削除する。
+- 画像は既定30日で期限切れ。手動削除と日次CronはStorage APIを使い、画像・派生データを削除する。
+- ユーザー単位10分3回、1日上限は`VISUAL_SEARCH_DAILY_LIMIT`（既定10）、候補再評価20名、結果10名。
+- OpenAIには参考画像、検索条件、候補者UUID、公開プロフィール、スキル/ソフト、既存の画像ベース8軸評価、強み/懸念/推奨案件だけを送る。メール、電話、住所、社内メモ、認証IDは送らない。
+- 人物特定、顔認識、センシティブ属性推定、自動不採用を禁止し、Structured OutputsをZod検証する。
+
 ## 運用確認
 
 - Vercelログを`CRON_SECRET`、`SUPABASE_SECRET_KEY`、`OPENAI_API_KEY`、`Bearer`、`sk-`、`sb_secret_`のパターンで確認する。
 - Supabase Security/Performance Advisorをmigration適用後とリリース前に確認する。
-- 2026-07-14の最終確認では重大指摘0。Leaked Password Protectionを有効化済みとの申告後もAdvisor APIは警告を返している。DashboardのAttack Protection設定・対象プロジェクト・反映待ちを再確認する運用課題であり、アプリコードやmigrationの問題として扱わない。
+- 2026-07-14のPhase 4適用後もSecurity Advisorの重大指摘は0。Advisor APIは`Leaked Password Protection Disabled`警告を返す一方、Dashboardでは有効化済みとの申告がある。Authentication > Attack Protectionで対象project ref `vrfsaasawsgwxzgsnatk`、設定ON、保存完了を手動確認し、反映後にAdvisorを再実行する。これはDashboard設定状態であり、Phase 3.5/4のコードやmigrationをブロックしない。
