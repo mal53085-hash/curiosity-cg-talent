@@ -3,6 +3,10 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getSupabaseConfig } from "./config";
 
 export async function updateSession(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith("/api/cron/")) {
+    return NextResponse.next({ request });
+  }
+
   const config = getSupabaseConfig();
   const isLogin = request.nextUrl.pathname === "/login";
 
