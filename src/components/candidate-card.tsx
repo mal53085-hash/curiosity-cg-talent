@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { ArrowUpRight, MapPin } from "lucide-react";
 import { CandidateAvatar } from "@/components/candidate-avatar";
-import { StatusBadge } from "@/components/status-badge";
-import type { Candidate } from "@/types/candidate";
+import { getHiringSignals } from "@/lib/candidates/japan-hiring";
+import { hiringPipelineLabels, type Candidate } from "@/types/candidate";
 
 interface CandidateCardProps {
   candidate: Candidate;
 }
 
 export function CandidateCard({ candidate }: CandidateCardProps) {
+  const signals = getHiringSignals(candidate);
   return (
     <Link
       href={`/candidates/${candidate.id}`}
@@ -37,17 +38,12 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
             <MapPin size={12} />
             {[candidate.city, candidate.country].filter(Boolean).join(", ")}
           </span>
-          <span className="font-mono text-sm font-medium">
-            {candidate.rating === "unrated" ? "—" : candidate.rating}
-          </span>
+          <span className="text-[10px] text-muted">{hiringPipelineLabels[candidate.hiring_pipeline_stage]}</span>
         </div>
-        <div className="mt-4 flex items-center justify-between border-t pt-4">
-          <StatusBadge status={candidate.status} />
-          <span className="font-mono text-[11px] text-muted">
-            {candidate.ai_score == null ? "AI —" : `AI ${candidate.ai_score}`}
-          </span>
-        </div>
+        <div className="mt-4 grid grid-cols-3 gap-2 border-t pt-4 text-center"><Metric label="CG Fit" value={signals.cgFit}/><Metric label="Japan" value={signals.japanReadiness}/><Metric label="Priority" value={signals.contactPriority}/></div>
       </div>
     </Link>
   );
 }
+
+function Metric({ label, value }: { label: string; value: number | string | null }) { return <span><span className="block text-[9px] text-muted">{label}</span><span className="mt-1 block font-mono text-sm">{value ?? "—"}</span></span>; }
