@@ -44,6 +44,10 @@ export type Candidate = {
   rating: CandidateRating;
   portfolio_url: string | null;
   source_url: string | null;
+  public_profile: string | null;
+  employment_types: string[];
+  work_location_preferences: string[];
+  expected_salary_jpy: number | null;
   source_type?: "manual" | "behance" | "artstation" | "linkedin" | "website";
   external_id?: string | null;
   discovered_at?: string | null;
