@@ -75,4 +75,4 @@
 
 - Vercelログを`CRON_SECRET`、`SUPABASE_SECRET_KEY`、`OPENAI_API_KEY`、`Bearer`、`sk-`、`sb_secret_`のパターンで確認する。
 - Supabase Security/Performance Advisorをmigration適用後とリリース前に確認する。
-- 2026-07-14のPhase 4.5適用後もSecurity Advisorの重大指摘は0。最新Advisor APIは`Leaked Password Protection Disabled`警告を返す一方、Dashboardでは有効化・再デプロイ済みとの申告がある。Authentication > Attack Protectionで対象project ref `vrfsaasawsgwxzgsnatk`、設定ON、保存完了を手動確認し、数分後にAdvisorを再実行する。これはDashboard/Auth設定の反映状態であり、アプリコードやPhase 4.5 migrationの問題ではなく、実装をブロックしない。
+- 2026-07-14のv0.4.6 migration適用後もSecurity Advisorの重大指摘は0。最新Advisor APIは`Leaked Password Protection Disabled`警告を返す一方、Dashboardでは有効化・再デプロイ済みとの申告がある。Authentication > Attack Protectionで対象project ref `vrfsaasawsgwxzgsnatk`、設定ON、保存完了を手動確認し、数分後にAdvisorを再実行する。これはDashboard/Auth設定の反映状態であり、アプリコードやv0.4.6 migrationの問題ではなく、実装をブロックしない。

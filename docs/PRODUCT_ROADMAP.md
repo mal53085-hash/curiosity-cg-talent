@@ -51,8 +51,8 @@
 | P45-06 | 4.5 | Review Sampling | AI評価の偏りを人が再確認 | P1 | Done | P45-05 | 高/低得点、差分、低品質、不安定順位を抽出し人間評価を保存 | AI点だけで非表示・状態変更しない | `dc17513`, `9f14cc3` |
 | P45-07 | 4.5 | Search Quality Dashboard | 精度とサンプル量を分離して判断 | P0 | Done | P35-04, P45-06 | 件数、適格、評価、人間差、Precision、検索別件数を表示 | 20名未満は機能検証のみと明示 | `9f14cc3`, `96b64e4` |
 | P45-08 | 4.5 | Production Validation | 本番確認の証跡を継続管理 | P0 | Done | P45-01〜07 | 14項目の結果・確認者・日時・証跡履歴を保存 | 秘密値を証跡へ書かない | `dc17513`, `96b64e4` |
-| P46-01 | 4.6 | Reference Privacy Mode | 企業の参考画像を恒久保存せず検索可能にする | P0 | Done | P4-01〜05 | 常時ON、Storage object 0、特徴抽出後の即時破棄、特徴量検索 | EXIF/thumbnail/cache/URL禁止、監査可能な破棄、OpenAI `store:false` | v0.4.6 release |
-| P46-02 | 4.6 | Feature-only Visual Search | 画像再取得なしで候補者を検索 | P0 | Done | P46-01 | 9分類特徴と16次元vectorだけで事前抽出・再評価 | 最大20名、機微情報非送信、自動不採用禁止 | v0.4.6 release |
+| P46-01 | 4.6 | Reference Privacy Mode | 企業の参考画像を恒久保存せず検索可能にする | P0 | Done | P4-01〜05 | 常時ON、Storage object 0、特徴抽出後の即時破棄、特徴量検索 | EXIF/thumbnail/cache/URL禁止、監査可能な破棄、OpenAI `store:false` | `5267f34`, `384a2ac`, `06dba3f` |
+| P46-02 | 4.6 | Feature-only Visual Search | 画像再取得なしで候補者を検索 | P0 | Done | P46-01 | 9分類特徴と16次元vectorだけで事前抽出・再評価 | 最大20名、機微情報非送信、自動不採用禁止 | `5267f34`, `384a2ac` |
 | P5-01 | 5 | 契約API連携 | 保存可能な発見経路を増やす | P0 | Backlog | 法務確認 | 契約・保存権・削除手順が文書化 | API規約を優先 | — |
 | P5-02 | 5 | ArtStation/CGArchitect/個人サイト | CG人材の発見範囲を拡大 | P1 | Backlog | P5-01 | 各ソースの上限付きInbox登録 | robots.txt・利用規約順守 | — |
 | P5-03 | 5 | Behance適法連携 | Behance候補を安定取得 | P1 | Blocked | 契約・保存権 | 規約を満たすAPI/手動運用を確定 | 無断クロール禁止 | — |
