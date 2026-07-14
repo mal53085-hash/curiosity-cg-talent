@@ -18,6 +18,10 @@ export type VisualFeatureVector = z.infer<typeof visualFeatureVectorSchema>;
 
 export const visualRankingSchema = z.object({ results: z.array(z.object({
   candidate_id: z.string().uuid(), visual_fit_score: z.number().int().min(0).max(100),
+  brand_dna_match: z.number().int().min(0).max(100), lighting_match: z.number().int().min(0).max(100),
+  composition_match: z.number().int().min(0).max(100), material_match: z.number().int().min(0).max(100),
+  luxury_brand_fit: z.number().int().min(0).max(100), display_design: z.number().int().min(0).max(100),
+  color_control: z.number().int().min(0).max(100), visual_silence: z.number().int().min(0).max(100),
   similar_features: z.array(short).min(1).max(8), different_features: z.array(short).max(8),
   strengths: z.array(short).max(6), risks: z.array(short).max(6), recommended_scope: z.string().min(1).max(1000),
   interview_questions: z.array(short).min(1).max(6),

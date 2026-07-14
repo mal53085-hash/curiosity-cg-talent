@@ -3,6 +3,7 @@ import test from "node:test";
 import sharp from "sharp";
 import { MAX_VISUAL_IMAGE_BYTES, sanitizeVisualImage } from "../src/lib/visual-search/image";
 import { aggregateVisualFeatures, buildVisualFeatureVector, featureRecord } from "../src/lib/visual-search/features";
+import { resolveVisualResultScores } from "../src/lib/visual-search/result-scores";
 import { visualFeaturesSchema, visualRankingSchema } from "../src/types/visual-search";
 
 const validFeatures = { space_types: ["retail"], composition: ["central"], camera_position: ["eye level"], field_of_view: ["wide"], lighting: ["soft"], time_of_day: "night" as const, artificial_lighting: ["warm"], color_tone: ["neutral"], contrast: ["low"], materials: ["stone"], luxury_level: 90, brand_tones: ["quiet"], detail_density: 80, photorealism: 90, hospitality_fit: 60, retail_fit: 90, exterior_interior: "interior" as const, quiet_drama: 20, summary: "test", uncertainties: [] };
@@ -45,4 +46,15 @@ test("multiple reference feature sets aggregate without source images", () => {
   assert.equal(aggregate.luxury_level, 80);
   assert.deepEqual(aggregate.composition, ["central", "asymmetric"]);
   assert.equal(buildVisualFeatureVector(aggregate).length, 16);
+});
+
+test("new visual ranking output requires all eight explainable fit dimensions", () => {
+  const result = { candidate_id: "7ad1aacc-6152-4d17-8ea9-04f454d649ef", visual_fit_score: 88, brand_dna_match: 90, lighting_match: 87, composition_match: 91, material_match: 83, luxury_brand_fit: 92, display_design: 86, color_control: 84, visual_silence: 89, similar_features: ["静かなトーン"], different_features: [], strengths: [], risks: [], recommended_scope: "高級店舗", interview_questions: ["担当範囲を確認"] };
+  assert.equal(visualRankingSchema.safeParse({ results: [result] }).success, true);
+  assert.equal(visualRankingSchema.safeParse({ results: [{ ...result, visual_silence: undefined }] }).success, false);
+});
+
+test("legacy saved results receive deterministic display fallbacks", () => {
+  const scores = resolveVisualResultScores({ visual_fit_score: 80 }, { lighting: 90, composition: 70, materials: 75, luxury_brand_fit: 85, retail_fit: 88, finish: 78 });
+  assert.deepEqual(scores, { visual_fit_score: 80, brand_dna_match: 83, lighting: 90, composition: 70, material: 75, luxury_brand_fit: 85, display_design: 88, color_control: 78, visual_silence: 82 });
 });
