@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { fetchPublicImage } from "@/lib/discovery/safe-web";
+import { fetchPublicImage, identifySource } from "@/lib/discovery/safe-web";
 import { discoverySourceTypes, type DiscoverySourceType } from "@/types/discovery";
 
 export type DiscoveryActionState =
@@ -66,7 +66,11 @@ export async function createDiscoveryItemAction(
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "入力内容を確認してください。" };
 
-  const sourceType = parseSourceType(formData.get("source_type"));
+  const detectedType = identifySource(new URL(parsed.data.source_url));
+  const submittedType = parseSourceType(formData.get("source_type"));
+  const sourceType = detectedType === "website" && submittedType !== "manual"
+    ? submittedType
+    : detectedType;
   const supabase = await createClient();
   const { error } = await supabase.from("discovery_items").insert({
     source_type: sourceType,
