@@ -2,7 +2,7 @@
 
 Curiosityの建築・インテリアCG人材を世界中から発見、評価、管理する採用管理Webアプリです。
 
-Phase 1の候補者管理に加え、Phase 2では公開ポートフォリオから人材を発見し、人が承認してから候補者化するDiscoveryワークフローを実装しています。
+Phase 1の候補者管理、Phase 2のDiscoveryに加え、Phase 3では登録済み候補を案件要件から検索・比較するAI Scoutを実装しています。
 
 ## 技術スタック
 
@@ -28,6 +28,10 @@ Phase 1の候補者管理に加え、Phase 2では公開ポートフォリオか
 - Discovery Inboxでの単件・一括承認、見送り、重複判定
 - 検索テーマ、1日あたりの取得上限、Cron実行履歴と失敗ログ
 - 公開作品画像と公開説明だけを使うDiscovery AI仮評価
+- 自然言語要件から構造化条件へ変換するAI Scout
+- DBで最大50件を絞り、上位20件だけをOpenAIで最大10件へ再ランキング
+- Scout適合点、適合理由、強み、懸念、推奨案件、面談質問の保存
+- 最大3人の比較、保存済み検索、日英スカウト文面のコピー
 - PostgreSQL RLSとServer Action内の認証再検証
 
 ## ローカルセットアップ
@@ -84,6 +88,8 @@ npx supabase db push
 - `discovery_sources`、`discovery_items`、`discovery_runs`、`import_jobs`
 - source URLと`source_type + external_id`の一意制約、検索用index、監査trigger
 - Discoveryテーブルの認証済みワークスペース向けRLS
+- `scout_searches`、`scout_runs`、`scout_results`と所有者単位RLS
+- AI Scout用の公開プロフィール、契約形態、希望勤務地、確認済み希望年収
 
 ローカルSupabaseを使う場合は、Docker Desktopを起動して次を実行します。
 
@@ -193,6 +199,19 @@ https://www.linkedin.com/in/example,Example Artist,Senior CG Artist,United Kingd
 
 Inboxの「AI仮評価」は、人が登録・確認した公開作品画像、公開説明、職務関連スキルだけをOpenAIへ送ります。氏名、メール、電話、国、LinkedIn Recruiter項目、社内メモは送信しません。AIによる自動承認・自動不採用は行わず、承認・見送り・重複は必ず人が操作します。承認時はAI評価を正式候補へ引き継ぎ、公開サムネイルを安全に取得できた場合だけ非公開Storageへ保存します。
 
+## AI Scout運用
+
+`AI Scout`で案件要件を5〜1,200文字の自然言語で入力します。OpenAIは最初に要件を構造化し、Supabase内の候補だけを絞り込みます。全候補を外部へ送らず、ローカル事前順位の上位20件だけを最大10件へ再ランキングします。
+
+- AI Scout適合点は案件相対、既存AI総合点は作品評価であり、別の指標です。
+- 候補者のメール、電話、社内メモ、Auth ID、秘密情報はOpenAIへ送りません。
+- スカウト文面は日本語・英語のLinkedIn短文とメール長文を生成しますが、送信機能はなくコピー専用です。
+- 検索はユーザー単位で10分5回、文面生成は10分10件までです。
+- 入力の命令注入パターンを拒否し、AI出力をJSON SchemaとZodで検証します。
+- 結果は判断材料です。自動不採用や採用状態の自動変更は行いません。
+
+設計・運用判断は [`docs/PRODUCT_ROADMAP.md`](docs/PRODUCT_ROADMAP.md)、[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)、[`docs/SECURITY.md`](docs/SECURITY.md)、[`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md)を参照してください。
+
 ## セキュリティモデル
 
 - Supabase Authユーザーは管理者が作成・招待するワークスペースメンバーです。
@@ -216,6 +235,8 @@ src/
   lib/
     candidates/         # validationとdata access
     discovery/          # URL安全取得、検索プロバイダー、data access
+    scout/              # 構造化フィルター、候補抽出、事前順位
+    ai/                 # server-onlyの評価・Scout OpenAI処理
     supabase/           # browser/server/proxy clients
   proxy.ts              # セッション更新とルート保護
 supabase/

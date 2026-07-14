@@ -7,6 +7,8 @@
 - Scout適合点、根拠、比較、保存済み検索
 - 日英のLinkedIn短文・メール長文の下書きとコピー
 - `scout_searches`、`scout_runs`、`scout_results`と所有者RLS
+- ユーザー単位レート制限、入力上限、Prompt Injection拒否、Zod Structured Outputs
+- 正常系、Empty State、異常なAI出力、機密フィールド境界の自動テスト
 
 ## 2026-07-14 — Phase 2 Discovery
 
