@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Grid2X2, List, Plus, Search, SlidersHorizontal, X } from "lucide-react";
 import { CandidateCard } from "@/components/candidate-card";
 import { CandidateTable } from "@/components/candidate-table";
+import { BulkEnrichment } from "@/components/bulk-enrichment";
 import { ButtonLink } from "@/components/ui/button-link";
 import { buttonStyles } from "@/components/ui/button";
 import { fieldControlClass } from "@/components/ui/field";
@@ -155,6 +156,8 @@ export default async function CandidatesPage({ searchParams }: CandidatesPagePro
           </Link>
         </div>
       </div>
+
+      <BulkEnrichment kind="candidates" records={candidates.map((candidate) => ({ id: candidate.id, name: `${candidate.full_name} — ${candidate.data_quality_score}/100` }))} />
 
       {candidates.length > 0 ? (
         view === "gallery" ? (

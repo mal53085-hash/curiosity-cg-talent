@@ -3,6 +3,7 @@ import { Check, Copy, ExternalLink, Inbox, Sparkles, X } from "lucide-react";
 import { bulkReviewDiscoveryAction, reviewDiscoveryItemAction } from "@/app/actions/discovery";
 import { DiscoveryTabs } from "@/components/discovery-tabs";
 import { DiscoveryAiButton } from "@/components/discovery-ai-button";
+import { BulkEnrichment } from "@/components/bulk-enrichment";
 import { buttonStyles } from "@/components/ui/button";
 import { getDiscoveryItems } from "@/lib/discovery/data";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,7 @@ export default async function DiscoveryPage({ searchParams }: { searchParams: Pr
       <div className="mt-5 flex gap-2 overflow-x-auto">
         {discoveryItemStatuses.map((value) => <Link key={value} href={`/discovery?status=${value}`} className={cn("rounded-full border bg-surface px-3 py-1.5 text-xs text-muted", status === value && "border-foreground text-foreground")}>{discoveryStatusLabels[value]}</Link>)}
       </div>
+      <BulkEnrichment kind="discovery" records={items.map((item) => ({ id: item.id, name: item.author_name }))} />
 
       {items.length ? (
         <form action={bulkReviewDiscoveryAction} className="mt-5">
