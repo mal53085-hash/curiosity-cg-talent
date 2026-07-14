@@ -1,5 +1,13 @@
 # dig Architecture
 
+## v0.5.0 Simple hiring layer
+
+`/dashboard`、`/candidates`、`/add-candidates`、`/hiring-pipeline`を日本採用の主導線とする。`/advanced`は既存のScout、Visual Search、Discovery、Acquisition、Data Quality、Evaluation、Validationへの索引であり、既存URLとデータモデルを変更しない。
+
+`candidates.hiring_pipeline_stage`は新しい操作列、旧`candidates.status`はAdvanced互換列として併存する。状態変更Server Actionは両方を同期し、migrationは旧statusを一度だけ新Pipelineへ写像する。Japan Readinessは値と`readiness_verification` JSONBのprovenanceを分ける。`user_preferences`はユーザー自身のSimple/Advanced設定、`candidate_interactions`は接触・返信・面談・状態変更の追記履歴を持つ。
+
+Contact PriorityはOpenAIの単一出力ではなく、CG Fit 40%、Japan Readiness最大30点、確認度最大15点、案件適性5点、接触状況最大10点をルールベースで合成する。ClosedまたはBlockedは優先度0にするが、自動見送りはせず人間確認の次アクションを返す。
+
 ## 目的
 
 digは、Curiosityが建築・インテリアCG人材を発見、評価、比較し、人が採用判断するための社内プラットフォームである。AIは検索条件の構造化、作品評価、候補ランキング、文面下書きを補助する。

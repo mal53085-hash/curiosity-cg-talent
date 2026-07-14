@@ -1,5 +1,17 @@
 # dig Release Notes
 
+## 2026-07-14 — v0.5.0 Japan hiring workspace
+
+- Simpleを既定にし、Home / Candidates / Add Candidates / Hiring Pipeline / Advanced / Settingsへナビゲーションを簡略化
+- AI Scout、Visual Search、Discovery、Acquisition、Data Quality、Evaluation、ValidationをAdvancedへ移動し、既存URLとデータを維持
+- Japan Readiness A/B/C/D/Blocked、確認度、根拠、14項目のprovenanceを追加
+- CG Fit / Japan Readiness / Contact Priorityの3指標に候補者一覧を整理
+- 日本採用向け保存済みビュー、カード/テーブル切替、Data Coverage 40/20/20/15/5目標
+- New / Shortlist / Contacted / Interview / Offer / Closedと7種のClosed理由を追加し、旧statusを後方互換同期
+- 採用結論、次アクション、日本勤務条件、接触履歴を優先する候補者詳細へ再設計
+- 日本在住、外国籍、移住確認、海外リモート、転職意向確認の文面を日英でコピー可能
+- `user_preferences`と`candidate_interactions`を追加しRLSを適用
+
 ## 2026-07-14 — v0.4.7 Visual Search result experience
 
 - 画像検証、特徴抽出、元画像破棄、候補事前選定、AI再ランキング、結果作成の6段階表示と段階別エラー

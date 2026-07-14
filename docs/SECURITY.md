@@ -16,6 +16,10 @@
 
 ## OpenAIデータ境界
 
+Japan Readinessの国籍、在留資格、就労許可、語学力、移住意向はAIに推測させない。本人申告、公開記載、人間確認、不明、要確認のprovenanceを項目ごとに保存する。Contact PriorityとPipeline変更はルールベースか人間操作に限定し、AIスコア単独でClosedまたは見送りへ変更しない。日本採用向け文面は未確認情報を質問として表現し、コピーのみで送信機能を持たない。
+
+`user_preferences`は`auth.uid() = user_id`、`candidate_interactions`は認証済み閲覧と作成者更新・削除のRLSを適用する。新規テーブルにはData APIの権限を明示し、anonには付与しない。
+
 送信可能:
 
 - 公開プロフィール情報、職種、地域、スキル、使用ソフト、言語

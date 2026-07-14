@@ -4,6 +4,17 @@
 プロダクトオーナー: Curiosity  
 本番: https://dig-mal1956.vercel.app
 
+## v0.5.0 Japan Hiring Operations
+
+| ID | Phase | 機能名 | 目的 | 優先度 | ステータス | 依存関係 | 完了条件 | セキュリティ・規約上の注意 | 実装済みコミット |
+|---|---|---|---|---|---|---|---|---|---|
+| JH-01 | 5.0 | Simple / Advanced | 日常採用と高度機能を分離 | P0 | Done | Supabase Auth | ユーザー単位保存、既定Simple、旧URL維持 | preferenceは本人RLS | `a3f69bf` |
+| JH-02 | 5.0 | Japan Readiness | 日本勤務条件を根拠付きで確認 | P0 | Done | Candidates | A/B/C/D/Blocked、項目別provenance | 国籍・在留資格・語学力をAI推測しない | `338022b`, `43b494b` |
+| JH-03 | 5.0 | Action Home | 今日の確認業務を短縮 | P0 | Done | JH-02 | 6タスクと注目候補、次アクション | AIによる自動見送り禁止 | `a4387b1` |
+| JH-04 | 5.0 | Hiring Pipeline | 接触から採用までを簡単に管理 | P0 | Done | JH-02 | 6段階、Closed理由、旧status互換 | 状態変更は人の操作のみ | `147c697` |
+| JH-05 | 5.0 | Japan outreach | 未確認条件を自然に質問 | P1 | Done | JH-02 | 日英5種、コピーのみ | 未確認事項を断定しない | `147c697` |
+| JH-06 | 5.0 | Data Coverage | 日本採用向け候補構成を可視化 | P1 | Done | JH-02 | 40/20/20/15/5目標をHome表示 | 確認済み情報だけで分類 | `a4387b1` |
+
 ## 運用ルール
 
 - ステータスは `Backlog / Planned / In Progress / Review / Done / Blocked` のいずれかを使う。
