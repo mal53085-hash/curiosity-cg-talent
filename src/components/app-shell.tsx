@@ -10,6 +10,7 @@ import {
   Menu,
   Search,
   Settings,
+  Sparkles,
   Users,
   X,
 } from "lucide-react";
@@ -18,6 +19,7 @@ import { cn } from "@/lib/utils";
 
 const navigation = [
   { href: "/dashboard", label: "ダッシュボード", icon: LayoutDashboard },
+  { href: "/scout", label: "AI Scout", icon: Sparkles },
   { href: "/discovery", label: "Discovery", icon: Radar },
   { href: "/candidates", label: "候補者", icon: Users },
 ] as const;
