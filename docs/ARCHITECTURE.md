@@ -11,7 +11,7 @@ Browser
   -> Next.js App Router / Vercel
       -> Supabase Auth (session verification)
       -> Supabase PostgreSQL (RLS)
-      -> Supabase Storage (private candidate-images / candidate-portfolio-images / visual-search-quarantine / visual-search-references)
+      -> Supabase Storage (private candidate-images / candidate-portfolio-images; Visual Search references are never stored)
       -> OpenAI Responses API (server-only, selected public fields only)
       -> Vercel Cron (CRON_SECRET)
 ```
@@ -53,17 +53,17 @@ OpenAIへ送る候補情報は、候補者ID、公開プロフィール、職種
 
 ```text
 権利確認 + 参考画像1〜5枚
-  -> browser: private quarantine bucket（8MB/MIME上限）
-  -> server: magic bytes + Sharp decode
-  -> rotate + WebP再エンコード（EXIF/メタデータ除去）
-  -> private references bucket（30日）
-  -> OpenAIで構造化視覚特徴を抽出
-  -> DBで全候補を事前順位化
+  -> browser memory: magic bytes + decode + WebP再エンコード（EXIF除去、1枚ずつ送信）
+  -> server memory: magic bytes + Sharp decode
+  -> OpenAI Responses API (store:false) で構造化視覚特徴を抽出
+  -> raw/normalized bufferを即時ゼロ化、Storage objectは作成しない
+  -> visual_search_imagesへ特徴表現・vector・処理model/日時だけを保存
+  -> 保存特徴量だけで全候補を事前順位化
   -> 上位20名以下の既存画像ベース8軸評価・公開職務情報だけを再ランキング
   -> 最大10名をvisual_search_resultsへ保存
 ```
 
-`visual_searches`削除時はStorage APIで画像を先に削除し、DBの外部キー削除連動でrun/result/image行を削除する。日次Cronも同じ順序で期限切れ検索を削除し、`audit_events`へ件数だけを残す。
+`visual_searches`削除時は外部キー削除連動で特徴量/run/result行を削除する。日次Cronも期限切れの派生データを削除し、`audit_events`へ件数だけを残す。画像復元・再ダウンロード・署名URL生成の経路は存在しない。旧`visual-search-*` bucketは空の互換資産で、v0.4.6 migrationが所有者Storage policyを削除するため新規uploadには使えない。
 
 ## 非機能要件
 

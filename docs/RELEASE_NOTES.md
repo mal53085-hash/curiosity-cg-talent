@@ -1,5 +1,16 @@
 # dig Release Notes
 
+## 2026-07-14 — v0.4.6 Reference Privacy Mode
+
+- dig EnterpriseのVisual SearchでReference Privacy Modeを常時ON化
+- ブラウザとサーバーの二段階実形式・デコード検証、ブラウザ側WebP変換によるEXIF除去
+- 参考画像をSupabase Storageへuploadせず、OpenAI特徴抽出直後にメモリバッファを破棄
+- Lighting、Composition、Material、Brand Tone、Space Type、Camera Characteristics、16次元AI Feature Vector、処理日時、model versionだけを保存
+- Visual Searchの事前抽出・上位20名再評価を保存特徴量だけで実行
+- `store:false`、no-store response、画像preview/thumbnail/cache/public URL/一時ファイルなし
+- 破棄成功・失敗、Storage object未作成、特徴量削除を`audit_events`へ記録
+- 旧Visual Search Storage所有者policyを削除し、新規reference upload経路を閉鎖
+
 ## 2026-07-14 — Production Validation runbook completion
 
 - 本番検証を15項目へ再編し、各項目に実施手順と期待結果を画面表示

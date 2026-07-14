@@ -49,8 +49,12 @@
 
 - 権利または許可を持つという利用者チェックを必須にする。システムは権利を保証しない。
 - 1〜5枚、1枚8MB以下、JPEG/PNG/WebPのみ。SVGを禁止し、拡張子や申告MIMEを信用せずmagic bytesとSharp decodeを検証する。
-- raw画像は非公開quarantineへ一時送信し、サーバーでWebPへ再エンコードしてEXIF等を除去後、非公開referencesへ保存する。quarantineは成功・失敗時に削除する。
-- 画像は既定30日で期限切れ。手動削除と日次CronはStorage APIを使い、画像・派生データを削除する。
+- v0.4.6のReference Privacy Modeは企業向け標準として常時ONで、無効化UI・画像保存経路を持たない。
+- ブラウザで実形式確認、画像デコード、最大辺縮小、WebP再エンコードを行いEXIFを除去する。Vercelの4.5MB本文上限を超えない解析用データを1枚ずつ送る。サーバーでもmagic bytesとSharp decodeを再検証する。
+- 解析用画像はメモリ内だけでOpenAIへ送り、特徴量保存後または失敗時に入力・正規化バッファをゼロ化する。Supabase Storage、サムネイル、キャッシュ画像、EXIF、公開URL、サーバー一時ファイルを作成しない。
+- 保存対象はLighting / Composition / Material / Brand Tone / Space Type / Camera Characteristics / 16次元AI Feature Vector / Processing Timestamp / Processing Model Versionだけ。検索削除または30日Cronで派生特徴量と結果を削除する。
+- `visual_reference.discarded`監査イベントに特徴量ID、処理日時、model、`source_retained=false`、`storage_object_created=false`、破棄方式を残す。画像、ファイル名、hash、URLは監査ログへ残さない。
+- OpenAI Responses APIは`store:false`を指定する。アプリケーションで元画像を復元する手段はない。OpenAI側の保持条件は契約・Zero Data Retention適格性を別途管理確認する。
 - ユーザー単位10分3回、1日上限は`VISUAL_SEARCH_DAILY_LIMIT`（既定10）、候補再評価20名、結果10名。
 - OpenAIには参考画像、検索条件、候補者UUID、公開プロフィール、スキル/ソフト、既存の画像ベース8軸評価、強み/懸念/推奨案件だけを送る。メール、電話、住所、社内メモ、認証IDは送らない。
 - 人物特定、顔認識、センシティブ属性推定、自動不採用を禁止し、Structured OutputsをZod検証する。

@@ -38,7 +38,7 @@
 | P35-02 | 3.5 | データ品質スコア | 候補者別の不足を0〜100で特定 | P0 | Done | P35-01 | 重み付きスコア・不足・次項目を表示 | 連絡先を品質要件にしない | Phase 3.5 release |
 | P35-03 | 3.5 | 一括データ補完 | Candidates/Inboxの不足を効率的に補う | P1 | Done | P35-02 | 最大50件、確認後に追加更新 | 認証・RLS・同一Origin | Phase 3.5 release |
 | P35-04 | 3.5 | Scout評価テスト | Precisionと人間評価を継続検証 | P0 | Done | P3 | ケース・想定・実績・versionを保存 | 20名未満はサンプル不足 | Phase 3.5 release |
-| P4-01 | 4 | 参考CG画像アップロード | 案件イメージを検索入力にする | P0 | Done | P3.5 | private Storageへ1〜5枚保存 | 権利確認、30日保持、SVG禁止 | Phase 4 release |
+| P4-01 | 4 | 参考CG画像アップロード | 案件イメージを検索入力にする | P0 | Done | P3.5 | 1〜5枚を検証して解析 | 権利確認、SVG禁止 | Phase 4 release, v0.4.6更新 |
 | P4-02 | 4 | 画像特徴分析 | 空間・光・素材特徴を構造化 | P0 | Done | P4-01 | JSON Schemaで特徴保存 | 人物属性を推測しない | Phase 4 release |
 | P4-03 | 4 | 作品類似度評価 | 参考画像に近い候補を抽出 | P0 | Done | P4-02 | 上位10件と共通点・差異を表示 | 類似度を採用可否に直結させない | Phase 4 release |
 | P4-04 | 4 | 適性検索 | ブランド・空間・光で検索 | P1 | Done | P4-02 | 複合条件、上位20件再評価 | バイアス監視、未確認事項を断定しない | Phase 4 release |
@@ -51,6 +51,8 @@
 | P45-06 | 4.5 | Review Sampling | AI評価の偏りを人が再確認 | P1 | Done | P45-05 | 高/低得点、差分、低品質、不安定順位を抽出し人間評価を保存 | AI点だけで非表示・状態変更しない | `dc17513`, `9f14cc3` |
 | P45-07 | 4.5 | Search Quality Dashboard | 精度とサンプル量を分離して判断 | P0 | Done | P35-04, P45-06 | 件数、適格、評価、人間差、Precision、検索別件数を表示 | 20名未満は機能検証のみと明示 | `9f14cc3`, `96b64e4` |
 | P45-08 | 4.5 | Production Validation | 本番確認の証跡を継続管理 | P0 | Done | P45-01〜07 | 14項目の結果・確認者・日時・証跡履歴を保存 | 秘密値を証跡へ書かない | `dc17513`, `96b64e4` |
+| P46-01 | 4.6 | Reference Privacy Mode | 企業の参考画像を恒久保存せず検索可能にする | P0 | Done | P4-01〜05 | 常時ON、Storage object 0、特徴抽出後の即時破棄、特徴量検索 | EXIF/thumbnail/cache/URL禁止、監査可能な破棄、OpenAI `store:false` | v0.4.6 release |
+| P46-02 | 4.6 | Feature-only Visual Search | 画像再取得なしで候補者を検索 | P0 | Done | P46-01 | 9分類特徴と16次元vectorだけで事前抽出・再評価 | 最大20名、機微情報非送信、自動不採用禁止 | v0.4.6 release |
 | P5-01 | 5 | 契約API連携 | 保存可能な発見経路を増やす | P0 | Backlog | 法務確認 | 契約・保存権・削除手順が文書化 | API規約を優先 | — |
 | P5-02 | 5 | ArtStation/CGArchitect/個人サイト | CG人材の発見範囲を拡大 | P1 | Backlog | P5-01 | 各ソースの上限付きInbox登録 | robots.txt・利用規約順守 | — |
 | P5-03 | 5 | Behance適法連携 | Behance候補を安定取得 | P1 | Blocked | 契約・保存権 | 規約を満たすAPI/手動運用を確定 | 無断クロール禁止 | — |
