@@ -8,8 +8,10 @@ const signatures = [
   { mime: "image/webp", match: (b: Buffer) => b.subarray(0, 4).toString() === "RIFF" && b.subarray(8, 12).toString() === "WEBP" },
 ] as const;
 
-export async function sanitizeVisualImage(input: ArrayBuffer) {
-  const original = Buffer.from(input);
+export const MAX_TRANSIENT_VISUAL_BYTES = 4 * 1024 * 1024;
+
+export async function sanitizeVisualImage(input: ArrayBuffer | Buffer) {
+  const original = Buffer.isBuffer(input) ? input : Buffer.from(input);
   if (!original.length || original.length > MAX_VISUAL_IMAGE_BYTES) throw new Error("IMAGE_SIZE_INVALID");
   const detected = signatures.find((item) => item.match(original));
   if (!detected) throw new Error("IMAGE_FORMAT_INVALID");

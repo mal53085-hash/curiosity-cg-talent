@@ -13,15 +13,15 @@ export async function POST(request: Request) {
   if (!auth.user) return Response.json({ error: "ログインが必要です。" }, { status: 401 });
   const now = Date.now(); const tenMinutesAgo = new Date(now - 600_000).toISOString(); const today = new Date(); today.setUTCHours(0,0,0,0);
   const [{ count: recent }, { count: daily }] = await Promise.all([
-    supabase.from("visual_search_runs").select("id", { count: "exact", head: true }).eq("created_by", auth.user.id).gte("started_at", tenMinutesAgo),
-    supabase.from("visual_search_runs").select("id", { count: "exact", head: true }).eq("created_by", auth.user.id).gte("started_at", today.toISOString()),
+    supabase.from("audit_events").select("id", { count: "exact", head: true }).eq("actor_id", auth.user.id).eq("event_type", "visual_search.created").gte("created_at", tenMinutesAgo),
+    supabase.from("audit_events").select("id", { count: "exact", head: true }).eq("actor_id", auth.user.id).eq("event_type", "visual_search.created").gte("created_at", today.toISOString()),
   ]);
   const dailyLimit = Math.min(100, Math.max(1, Number.parseInt(process.env.VISUAL_SEARCH_DAILY_LIMIT ?? "10", 10) || 10));
   if ((recent ?? 0) >= 3) return Response.json({ error: "Visual Searchは10分あたり3回までです。" }, { status: 429 });
   if ((daily ?? 0) >= dailyLimit) return Response.json({ error: "本日のVisual Search上限に達しました。" }, { status: 429 });
   const { image_count, ...values } = parsed.data;
-  const { data: search, error } = await supabase.from("visual_searches").insert({ ...values, expires_at: new Date(now + 30 * 86400_000).toISOString(), created_by: auth.user.id }).select("id,expires_at").single();
+  const { data: search, error } = await supabase.from("visual_searches").insert({ ...values, privacy_mode: true, reference_count: image_count, expires_at: new Date(now + 30 * 86400_000).toISOString(), created_by: auth.user.id }).select("id,expires_at").single();
   if (error || !search) return Response.json({ error: "検索を作成できませんでした。" }, { status: 500 });
-  await supabase.from("audit_events").insert({ event_type: "visual_search.created", resource_type: "visual_search", resource_id: search.id, metadata: { image_count, retention_days: 30 }, actor_id: auth.user.id });
-  return Response.json({ id: search.id, expires_at: search.expires_at, upload_prefix: `${auth.user.id}/${search.id}`, estimated_usage: { reference_images: image_count, candidate_rerank_max: 20, ai_calls: 2 } });
+  await supabase.from("audit_events").insert({ event_type: "visual_search.created", resource_type: "visual_search", resource_id: search.id, metadata: { image_count, feature_retention_days: 30, privacy_mode: true, storage_object_created: false }, actor_id: auth.user.id });
+  return Response.json({ id: search.id, expires_at: search.expires_at, privacy_mode: true, estimated_usage: { reference_images: image_count, candidate_rerank_max: 20, ai_calls: image_count + 1 } }, { headers: { "Cache-Control": "no-store, private", Pragma: "no-cache" } });
 }

@@ -5,14 +5,13 @@ export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET?.trim(); if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) return new Response("Unauthorized", { status: 401 });
   const admin = createAdminClient();
   try {
-    const { data: searches, error } = await admin.from("visual_searches").select("id,created_by,visual_search_images(storage_path)").lte("expires_at", new Date().toISOString()).limit(100); if (error) throw new Error("EXPIRED_QUERY_FAILED");
-    let imagesDeleted = 0;
+    const { data: searches, error } = await admin.from("visual_searches").select("id,visual_search_images(id)").lte("expires_at", new Date().toISOString()).limit(100); if (error) throw new Error("EXPIRED_QUERY_FAILED");
+    let featuresDeleted = 0;
     for (const search of searches ?? []) {
-      const paths = (search.visual_search_images ?? []).map((row: { storage_path: string }) => row.storage_path); if (paths.length) { const { error: removeError } = await admin.storage.from("visual-search-references").remove(paths); if (removeError) throw new Error("REFERENCE_DELETE_FAILED"); imagesDeleted += paths.length; }
-      const prefix = `${search.created_by}/${search.id}`; const { data: quarantine } = await admin.storage.from("visual-search-quarantine").list(prefix); if (quarantine?.length) await admin.storage.from("visual-search-quarantine").remove(quarantine.map((item) => `${prefix}/${item.name}`));
-      await admin.from("audit_events").insert({ event_type: "visual_search.expired", resource_type: "visual_search", resource_id: search.id, metadata: { images_deleted: paths.length, retention_days: 30 }, actor_id: null });
+      const featureCount = search.visual_search_images?.length ?? 0; featuresDeleted += featureCount;
+      await admin.from("audit_events").insert({ event_type: "visual_search.expired", resource_type: "visual_search", resource_id: search.id, metadata: { feature_records_deleted: featureCount, stored_images_deleted: 0, privacy_mode: true, retention_days: 30 }, actor_id: null });
       const { error: deleteError } = await admin.from("visual_searches").delete().eq("id", search.id); if (deleteError) throw new Error("SEARCH_DELETE_FAILED");
     }
-    return Response.json({ ok: true, searches_deleted: searches?.length ?? 0, images_deleted: imagesDeleted });
+    return Response.json({ ok: true, searches_deleted: searches?.length ?? 0, feature_records_deleted: featuresDeleted, stored_images_deleted: 0 }, { headers: { "Cache-Control": "no-store, private", Pragma: "no-cache" } });
   } catch { return Response.json({ ok: false, error: "Visual Search cleanup failed" }, { status: 500 }); }
 }
