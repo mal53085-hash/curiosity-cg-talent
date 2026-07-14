@@ -6,12 +6,16 @@ import { useState, type ReactNode } from "react";
 import {
   LayoutDashboard,
   BarChart3,
+  ClipboardCheck,
+  Gauge,
+  Import,
   ScanSearch,
   Radar,
   LogOut,
   Menu,
   Search,
   Settings,
+  SlidersHorizontal,
   Sparkles,
   Users,
   X,
@@ -24,6 +28,7 @@ const navigation = [
   { href: "/scout", label: "AI Scout", icon: Sparkles },
   { href: "/visual-search", label: "Visual Search", icon: ScanSearch },
   { href: "/data-quality", label: "データ品質", icon: BarChart3 },
+  { href: "/acquisition", label: "Acquisition", icon: Import },
   { href: "/discovery", label: "Discovery", icon: Radar },
   { href: "/candidates", label: "候補者", icon: Users },
 ] as const;
@@ -93,6 +98,30 @@ export function AppShell({ children, userEmail }: AppShellProps) {
         >
           <Search size={16} strokeWidth={1.7} />
           候補者を検索
+        </Link>
+        <Link
+          href="/search-quality"
+          onClick={() => setIsOpen(false)}
+          className="flex h-10 items-center gap-3 rounded-lg px-3 text-sm text-muted transition-colors hover:bg-surface-muted hover:text-foreground"
+        >
+          <Gauge size={16} strokeWidth={1.7} />
+          検索品質
+        </Link>
+        <Link
+          href="/calibration"
+          onClick={() => setIsOpen(false)}
+          className="flex h-10 items-center gap-3 rounded-lg px-3 text-sm text-muted transition-colors hover:bg-surface-muted hover:text-foreground"
+        >
+          <SlidersHorizontal size={16} strokeWidth={1.7} />
+          評価基準
+        </Link>
+        <Link
+          href="/production-validation"
+          onClick={() => setIsOpen(false)}
+          className="flex h-10 items-center gap-3 rounded-lg px-3 text-sm text-muted transition-colors hover:bg-surface-muted hover:text-foreground"
+        >
+          <ClipboardCheck size={16} strokeWidth={1.7} />
+          本番検証
         </Link>
         <span className="flex h-10 cursor-not-allowed items-center gap-3 rounded-lg px-3 text-sm text-[#aaa8a0]">
           <Settings size={16} strokeWidth={1.7} />
