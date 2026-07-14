@@ -6,6 +6,9 @@ export async function updateSession(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/api/cron/")) {
     return NextResponse.next({ request });
   }
+  if (request.nextUrl.pathname.startsWith("/api/visual-search")) {
+    return NextResponse.next({ request });
+  }
 
   const config = getSupabaseConfig();
   const isLogin = request.nextUrl.pathname === "/login";
