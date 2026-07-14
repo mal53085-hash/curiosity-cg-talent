@@ -87,7 +87,7 @@ export async function getScoutOverview() {
   const [{ data: searches, error: searchesError }, { data: runs, error: runsError }] = await Promise.all([
     supabase
       .from("scout_searches")
-      .select("id,name,original_query,structured_filters,last_run_at,created_at")
+      .select("id,name,original_query,structured_filters,last_run_at,created_at,style_profile_id")
       .eq("created_by", user.id)
       .order("updated_at", { ascending: false })
       .limit(20),

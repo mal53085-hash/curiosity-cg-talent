@@ -54,11 +54,12 @@ function Metric({ label, value }: { label: string; value: number | null | undefi
   return <div><p className="text-[10px] tracking-[0.12em] text-muted uppercase">{label}</p><p className="mt-1 font-mono text-xl">{value ?? "—"}<span className="text-xs text-muted">{value == null ? "" : "/100"}</span></p></div>;
 }
 
-export function ScoutWorkspace({ initialSearches, initialRuns }: { initialSearches: SavedScoutSearch[]; initialRuns: ScoutRunSummary[] }) {
+export function ScoutWorkspace({ initialSearches, initialRuns, styleProfiles }: { initialSearches: SavedScoutSearch[]; initialRuns: ScoutRunSummary[]; styleProfiles: Array<{ id: string; name: string }> }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [saveName, setSaveName] = useState("");
   const [activeSearchId, setActiveSearchId] = useState<string | null>(null);
+  const [styleProfileId, setStyleProfileId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>();
   const [response, setResponse] = useState<SearchResponse>();
@@ -75,7 +76,7 @@ export function ScoutWorkspace({ initialSearches, initialRuns }: { initialSearch
       const apiResponse = await fetch("/api/scout/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, save_name: activeSearchId ? null : saveName.trim() || null, search_id: activeSearchId }),
+        body: JSON.stringify({ query, save_name: activeSearchId ? null : saveName.trim() || null, search_id: activeSearchId, style_profile_id: styleProfileId || null }),
       });
       const data = await apiResponse.json() as SearchResponse;
       if (!apiResponse.ok) throw new Error(data.error || "検索できませんでした。");
@@ -130,9 +131,11 @@ export function ScoutWorkspace({ initialSearches, initialRuns }: { initialSearch
           <label htmlFor="scout-query" className="text-sm font-medium">どんな人を探していますか？</label>
           <textarea id="scout-query" value={query} onChange={(event) => { setQuery(event.target.value); setActiveSearchId(null); setSaveName(""); }} required minLength={5} maxLength={1200} rows={5} placeholder="例：ラグジュアリーホテルの夜景内装に強く、Coronaを使える人" className={`${fieldControlClass} mt-3 resize-y text-base leading-7`} />
           <div className="mt-4 flex flex-wrap gap-2">{examples.map((example) => <button key={example} type="button" onClick={() => { setQuery(example); setActiveSearchId(null); setSaveName(""); }} className="rounded-full border bg-[#faf9f5] px-3 py-1.5 text-[11px] text-muted transition hover:border-[#aaa89f] hover:text-foreground">{example}</button>)}</div>
-          <div className="mt-5 grid gap-4 border-t pt-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+          <div className="mt-5 grid gap-4 border-t pt-5 sm:grid-cols-2">
             <label className="text-xs text-muted">検索名（任意）<input value={saveName} disabled={Boolean(activeSearchId)} onChange={(event) => setSaveName(event.target.value)} maxLength={120} placeholder={activeSearchId ? "保存済み検索を更新します" : "例：TASAKI retail shortlist"} className={`${fieldControlClass} mt-2`} /></label>
-            <button type="submit" disabled={loading || query.trim().length < 5} className={buttonStyles("primary", "h-11 px-6")}><Search size={15} />{loading ? "条件を解析・検索中…" : "候補者を探す"}</button>
+            <label className="text-xs text-muted">Style Profile（任意）<select value={styleProfileId} onChange={(event) => setStyleProfileId(event.target.value)} className={`${fieldControlClass} mt-2`}><option value="">使用しない</option>{styleProfiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name}</option>)}</select></label>
+            <p className="text-[10px] leading-4 text-muted sm:col-span-2">Style Profileは自然言語条件と組み合わせて使用し、元画像ではなく保存済み派生特徴量だけをAIへ送ります。</p>
+            <button type="submit" disabled={loading || query.trim().length < 5} className={buttonStyles("primary", "h-11 px-6 sm:col-span-2 sm:justify-self-end")}><Search size={15} />{loading ? "条件を解析・検索中…" : "候補者を探す"}</button>
           </div>
         </form>
 
@@ -158,7 +161,7 @@ export function ScoutWorkspace({ initialSearches, initialRuns }: { initialSearch
       </div>
 
       <aside className="space-y-5">
-        <section className="rounded-2xl border bg-surface p-5"><div className="flex items-center justify-between"><h2 className="text-sm font-medium">保存済み検索</h2><span className="font-mono text-xs text-muted">{initialSearches.length}</span></div><div className="mt-4 space-y-2">{initialSearches.length ? initialSearches.map((search) => <button key={search.id} type="button" onClick={() => { setQuery(search.original_query); setActiveSearchId(search.id); setSaveName(search.name); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="w-full rounded-xl border p-3 text-left transition hover:bg-[#faf9f5]"><p className="text-xs font-medium">{search.name}</p><p className="mt-1 line-clamp-2 text-[11px] leading-5 text-muted">{search.original_query}</p><p className="mt-2 font-mono text-[9px] text-muted">最終実行 {search.last_run_at ? new Date(search.last_run_at).toLocaleString("ja-JP") : "未実行"}</p></button>) : <p className="py-6 text-center text-xs text-muted">検索名を付けて実行すると保存されます。</p>}</div>{activeSearchId ? <button type="button" onClick={() => { setActiveSearchId(null); setSaveName(""); }} className="mt-3 flex items-center gap-1 text-[11px] text-muted"><RotateCcw size={12} />新しい検索として保存</button> : null}</section>
+        <section className="rounded-2xl border bg-surface p-5"><div className="flex items-center justify-between"><h2 className="text-sm font-medium">保存済み検索</h2><span className="font-mono text-xs text-muted">{initialSearches.length}</span></div><div className="mt-4 space-y-2">{initialSearches.length ? initialSearches.map((search) => <button key={search.id} type="button" onClick={() => { setQuery(search.original_query); setActiveSearchId(search.id); setSaveName(search.name); setStyleProfileId(search.style_profile_id ?? ""); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="w-full rounded-xl border p-3 text-left transition hover:bg-[#faf9f5]"><p className="text-xs font-medium">{search.name}</p><p className="mt-1 line-clamp-2 text-[11px] leading-5 text-muted">{search.original_query}</p><p className="mt-2 font-mono text-[9px] text-muted">最終実行 {search.last_run_at ? new Date(search.last_run_at).toLocaleString("ja-JP") : "未実行"}</p></button>) : <p className="py-6 text-center text-xs text-muted">検索名を付けて実行すると保存されます。</p>}</div>{activeSearchId ? <button type="button" onClick={() => { setActiveSearchId(null); setSaveName(""); setStyleProfileId(""); }} className="mt-3 flex items-center gap-1 text-[11px] text-muted"><RotateCcw size={12} />新しい検索として保存</button> : null}</section>
         <section className="rounded-2xl border bg-surface p-5"><h2 className="text-sm font-medium">最近の実行</h2><div className="mt-4 space-y-3">{initialRuns.length ? initialRuns.slice(0, 6).map((run) => <div key={run.id} className="border-b pb-3 last:border-0 last:pb-0"><div className="flex items-center justify-between"><span className="rounded-full bg-surface-muted px-2 py-1 text-[9px]">{run.status}</span><span className="font-mono text-[9px] text-muted">{new Date(run.started_at).toLocaleString("ja-JP")}</span></div><p className="mt-2 line-clamp-2 text-[11px] leading-5">{run.original_query}</p><p className="mt-1 text-[10px] text-muted">候補 {run.candidate_pool_count} · 結果 {run.ranked_count}</p></div>) : <p className="py-6 text-center text-xs text-muted">実行履歴はまだありません。</p>}</div></section>
       </aside>
     </div>

@@ -5,6 +5,7 @@ import { getScoutCandidatePool } from "@/lib/scout/data";
 import { candidateMeetsHardFilters, candidatePrefilterScore } from "@/lib/scout/scoring";
 import { createClient } from "@/lib/supabase/server";
 import type { ScoutResultView } from "@/types/scout";
+import { visualFeaturesSchema } from "@/types/visual-search";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -13,19 +14,33 @@ const requestSchema = z.object({
   query: z.string().trim().min(5).max(1200),
   save_name: z.string().trim().min(1).max(120).nullable().default(null),
   search_id: z.string().uuid().nullable().default(null),
+  style_profile_id: z.string().uuid().nullable().default(null),
 });
 
+const responseHeaders = { "Cache-Control": "no-store, private", Pragma: "no-cache" };
+const json = (body: object, status = 200) => Response.json(body, { status, headers: responseHeaders });
+
 export async function POST(request: Request) {
-  if (!isSameOrigin(request)) return Response.json({ error: "不正なリクエストです。" }, { status: 403 });
+  if (!isSameOrigin(request)) return json({ error: "不正なリクエストです。" }, 403);
   const parsedBody = requestSchema.safeParse(await request.json().catch(() => null));
-  if (!parsedBody.success) return Response.json({ error: "検索条件は5〜1,200文字で入力してください。" }, { status: 400 });
+  if (!parsedBody.success) return json({ error: "検索条件は5〜1,200文字で入力してください。" }, 400);
   if (containsPromptInjection(parsedBody.data.query)) {
-    return Response.json({ error: "AI Scoutには候補者の職務要件だけを入力してください。" }, { status: 400 });
+    return json({ error: "AI Scoutには候補者の職務要件だけを入力してください。" }, 400);
   }
 
   const supabase = await createClient();
   const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) return Response.json({ error: "ログインが必要です。" }, { status: 401 });
+  if (authError || !authData.user) return json({ error: "ログインが必要です。" }, 401);
+
+  let styleProfile: { name: string; derived_features: z.infer<typeof visualFeaturesSchema>; evaluation_weights: Record<string, number>; model_version: string } | null = null;
+  if (parsedBody.data.style_profile_id) {
+    const { data: profile } = await supabase.from("style_profiles").select("id,name,status").eq("id", parsedBody.data.style_profile_id).eq("created_by", authData.user.id).maybeSingle();
+    if (!profile || profile.status !== "active") return json({ error: "利用可能なStyle Profileが見つかりません。" }, 404);
+    const { data: version } = await supabase.from("style_profile_versions").select("derived_features,evaluation_weights,model_version").eq("profile_id", profile.id).eq("created_by", authData.user.id).order("version_number", { ascending: false }).limit(1).maybeSingle();
+    const features = visualFeaturesSchema.safeParse(version?.derived_features);
+    if (!version || !features.success) return json({ error: "Style Profileの特徴量を読み込めませんでした。" }, 422);
+    styleProfile = { name: profile.name, derived_features: features.data, evaluation_weights: version.evaluation_weights as Record<string, number>, model_version: version.model_version };
+  }
 
   const windowStart = new Date(Date.now() - 10 * 60 * 1000).toISOString();
   const { count, error: rateError } = await supabase
@@ -33,15 +48,15 @@ export async function POST(request: Request) {
     .select("id", { count: "exact", head: true })
     .eq("created_by", authData.user.id)
     .gte("started_at", windowStart);
-  if (rateError) return Response.json({ error: "利用状況を確認できませんでした。" }, { status: 500 });
-  if ((count ?? 0) >= 5) return Response.json({ error: "AI Scoutは10分あたり5回までです。少し待って再試行してください。" }, { status: 429 });
+  if (rateError) return json({ error: "利用状況を確認できませんでした。" }, 500);
+  if ((count ?? 0) >= 5) return json({ error: "AI Scoutは10分あたり5回までです。少し待って再試行してください。" }, 429);
 
   const { data: run, error: runError } = await supabase
     .from("scout_runs")
-    .insert({ original_query: parsedBody.data.query, created_by: authData.user.id })
+    .insert({ original_query: parsedBody.data.query, style_profile_id: parsedBody.data.style_profile_id, created_by: authData.user.id })
     .select("id")
     .single();
-  if (runError || !run) return Response.json({ error: "検索履歴を開始できませんでした。" }, { status: 500 });
+  if (runError || !run) return json({ error: "検索履歴を開始できませんでした。" }, 500);
 
   try {
     const filters = await parseScoutQuery(parsedBody.data.query, authData.user.id);
@@ -49,7 +64,7 @@ export async function POST(request: Request) {
     if (searchId) {
       const { data: existingSearch, error: existingSearchError } = await supabase
         .from("scout_searches")
-        .update({ original_query: parsedBody.data.query, structured_filters: filters, last_run_at: new Date().toISOString() })
+        .update({ original_query: parsedBody.data.query, structured_filters: filters, style_profile_id: parsedBody.data.style_profile_id, last_run_at: new Date().toISOString() })
         .eq("id", searchId)
         .eq("created_by", authData.user.id)
         .select("id")
@@ -62,6 +77,7 @@ export async function POST(request: Request) {
           name: parsedBody.data.save_name,
           original_query: parsedBody.data.query,
           structured_filters: filters,
+          style_profile_id: parsedBody.data.style_profile_id,
           created_by: authData.user.id,
           last_run_at: new Date().toISOString(),
         })
@@ -87,10 +103,10 @@ export async function POST(request: Request) {
         model: scoutModel,
         completed_at: new Date().toISOString(),
       }).eq("id", run.id);
-      return Response.json({ run_id: run.id, search_id: searchId, filters, results: [] });
+      return json({ run_id: run.id, search_id: searchId, filters, results: [], style_profile: styleProfile?.name ?? null });
     }
 
-    const rankings = await rerankCandidates({ query: parsedBody.data.query, filters, candidates: pool, userId: authData.user.id });
+    const rankings = await rerankCandidates({ query: parsedBody.data.query, filters, candidates: pool, userId: authData.user.id, styleProfile });
     const candidateMap = new Map(pool.map(({ candidate }) => [candidate.id, candidate]));
     const results: ScoutResultView[] = rankings.flatMap((ranking, index) => {
       const candidate = candidateMap.get(ranking.candidate_id);
@@ -132,6 +148,7 @@ export async function POST(request: Request) {
 
     const { error: completeError } = await supabase.from("scout_runs").update({
       search_id: searchId,
+      style_profile_id: parsedBody.data.style_profile_id,
       structured_filters: filters,
       status: "succeeded",
       candidate_pool_count: pool.length,
@@ -140,13 +157,13 @@ export async function POST(request: Request) {
       completed_at: new Date().toISOString(),
     }).eq("id", run.id);
     if (completeError) throw new Error("SCOUT_RUN_COMPLETE_FAILED");
-    return Response.json({ run_id: run.id, search_id: searchId, filters, results });
+    return json({ run_id: run.id, search_id: searchId, filters, results, style_profile: styleProfile?.name ?? null });
   } catch {
     await supabase.from("scout_runs").update({
       status: "failed",
       error_message: "AI Scout処理に失敗しました。",
       completed_at: new Date().toISOString(),
     }).eq("id", run.id);
-    return Response.json({ error: "AI Scoutを一時的に利用できません。時間をおいて再試行してください。" }, { status: 503 });
+    return json({ error: "AI Scoutを一時的に利用できません。時間をおいて再試行してください。" }, 503);
   }
 }

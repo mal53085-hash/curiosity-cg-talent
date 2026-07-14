@@ -85,4 +85,5 @@ export type SavedScoutSearch = {
   structured_filters: ScoutFilters;
   last_run_at: string | null;
   created_at: string;
+  style_profile_id: string | null;
 };

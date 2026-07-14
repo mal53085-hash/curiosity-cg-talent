@@ -19,6 +19,7 @@ import { ButtonLink } from "@/components/ui/button-link";
 import { getCandidate } from "@/lib/candidates/data";
 import { getCandidatePortfolio } from "@/lib/candidates/portfolio";
 import { formatDate } from "@/lib/utils";
+import { getCandidateStyleMatches } from "@/lib/style-profiles/data";
 
 interface CandidateDetailPageProps {
   params: Promise<{ id: string }>;
@@ -26,8 +27,7 @@ interface CandidateDetailPageProps {
 
 export default async function CandidateDetailPage({ params }: CandidateDetailPageProps) {
   const { id } = await params;
-  const candidate = await getCandidate(id);
-  const portfolio = await getCandidatePortfolio(id);
+  const [candidate, portfolio, styleMatches] = await Promise.all([getCandidate(id), getCandidatePortfolio(id), getCandidateStyleMatches(id)]);
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-7 sm:px-7 sm:py-9 xl:px-10">
@@ -123,6 +123,11 @@ export default async function CandidateDetailPage({ params }: CandidateDetailPag
         </div>
 
         <aside className="space-y-6">
+          <section className="rounded-xl border bg-surface p-5">
+            <h2 className="text-sm font-medium">Style Profile適合</h2>
+            <p className="mt-2 text-[10px] leading-4 text-muted">過去のVisual Search結果に基づく補助指標です。採用判断ではありません。</p>
+            {styleMatches.length ? <div className="mt-4 space-y-3">{styleMatches.map((match) => <div key={match.profile_id} className="border-t pt-3"><p className="text-xs font-medium">{match.profile_name}</p><div className="mt-2 flex justify-between gap-4 text-[10px] text-muted"><span>Visual Fit <strong className="font-mono text-foreground">{match.visual_fit_score}</strong></span><span>DNA <strong className="font-mono text-foreground">{match.dna_match ?? "—"}</strong></span></div></div>)}</div> : <p className="mt-4 text-xs text-muted">Style Profileでの評価履歴はありません。</p>}
+          </section>
           <section className="rounded-xl border bg-surface p-5">
             <h2 className="text-sm font-medium">連絡先・プロフィール</h2>
             <dl className="mt-5 space-y-4">
