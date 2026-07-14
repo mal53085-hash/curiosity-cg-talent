@@ -23,6 +23,13 @@ export const candidateSchema = z.object({
   rating: z.enum(candidateRatings),
   portfolio_url: optionalUrl,
   source_url: optionalUrl,
+  public_profile: z.string().trim().max(5000).optional().default(""),
+  employment_types: optionalText,
+  work_location_preferences: optionalText,
+  expected_salary_jpy: z.union([
+    z.literal(""),
+    z.coerce.number().int().min(0).max(100000000),
+  ]),
   notes: z.string().trim().max(10000).optional().default(""),
 });
 

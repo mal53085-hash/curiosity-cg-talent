@@ -40,6 +40,10 @@ function rawCandidate(formData: FormData) {
     "rating",
     "portfolio_url",
     "source_url",
+    "public_profile",
+    "employment_types",
+    "work_location_preferences",
+    "expected_salary_jpy",
     "notes",
   ] as const;
 
@@ -62,6 +66,10 @@ function candidatePayload(input: CandidateInput, userId: string) {
     rating: input.rating,
     portfolio_url: nullable(input.portfolio_url),
     source_url: nullable(input.source_url),
+    public_profile: nullable(input.public_profile),
+    employment_types: splitList(input.employment_types),
+    work_location_preferences: splitList(input.work_location_preferences),
+    expected_salary_jpy: input.expected_salary_jpy === "" ? null : input.expected_salary_jpy,
     notes: nullable(input.notes),
     updated_by: userId,
   };

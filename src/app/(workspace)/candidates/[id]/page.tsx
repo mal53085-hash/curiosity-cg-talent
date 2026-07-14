@@ -103,6 +103,13 @@ export default async function CandidateDetailPage({ params }: CandidateDetailPag
           </section>
 
           <section className="rounded-xl border bg-surface p-5 sm:p-6">
+            <h2 className="text-sm font-medium">公開プロフィール</h2>
+            <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-[#55544f]">
+              {candidate.public_profile || "公開プロフィールは未登録です。"}
+            </p>
+          </section>
+
+          <section className="rounded-xl border bg-surface p-5 sm:p-6">
             <h2 className="text-sm font-medium">社内メモ</h2>
             <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-[#55544f]">
               {candidate.notes || "メモはまだありません。"}
@@ -123,6 +130,15 @@ export default async function CandidateDetailPage({ params }: CandidateDetailPag
               <div className="flex gap-3"><Globe2 size={15} className="mt-0.5 shrink-0 text-muted" /><div><dt className="text-[10px] text-muted">国・地域</dt><dd className="mt-1 text-xs">{candidate.country}</dd></div></div>
               {candidate.languages.length ? (
                 <div className="flex gap-3"><Languages size={15} className="mt-0.5 shrink-0 text-muted" /><div><dt className="text-[10px] text-muted">言語</dt><dd className="mt-1 text-xs leading-5">{candidate.languages.join(" / ")}</dd></div></div>
+              ) : null}
+              {candidate.employment_types.length ? (
+                <div><dt className="text-[10px] text-muted">希望契約形態</dt><dd className="mt-1 text-xs leading-5">{candidate.employment_types.join(" / ")}</dd></div>
+              ) : null}
+              {candidate.work_location_preferences.length ? (
+                <div><dt className="text-[10px] text-muted">希望勤務地</dt><dd className="mt-1 text-xs leading-5">{candidate.work_location_preferences.join(" / ")}</dd></div>
+              ) : null}
+              {candidate.expected_salary_jpy != null ? (
+                <div><dt className="text-[10px] text-muted">希望年収（確認済み）</dt><dd className="mt-1 text-xs">¥{candidate.expected_salary_jpy.toLocaleString("ja-JP")}</dd></div>
               ) : null}
             </dl>
           </section>

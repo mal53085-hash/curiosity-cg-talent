@@ -154,6 +154,7 @@ async function approveItem(id: string, userId: string) {
     rating: "unrated",
     portfolio_url: item.source_url,
     source_url: item.source_url,
+    public_profile: item.description,
     source_type: item.source_type,
     external_id: item.external_id,
     discovered_at: item.discovered_at,

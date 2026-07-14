@@ -84,6 +84,18 @@ export function CandidateForm({ action, candidate }: CandidateFormProps) {
           <Field label="発見元URL" htmlFor="source_url" error={error("source_url")}>
             <input id="source_url" name="source_url" type="url" defaultValue={candidate?.source_url ?? ""} placeholder="Behance / LinkedIn / Instagram" className={fieldControlClass} />
           </Field>
+          <Field label="公開プロフィール" htmlFor="public_profile" error={error("public_profile")} hint="公開経歴・作品説明のみ。連絡先や社内メモは入力しないでください。" className="sm:col-span-2">
+            <textarea id="public_profile" name="public_profile" rows={4} defaultValue={candidate?.public_profile ?? ""} className={fieldControlClass} />
+          </Field>
+          <Field label="希望契約形態" htmlFor="employment_types" error={error("employment_types")} hint="full_time, contract, freelance, part_time">
+            <input id="employment_types" name="employment_types" defaultValue={candidate?.employment_types.join(", ") ?? ""} placeholder="full_time, contract" className={fieldControlClass} />
+          </Field>
+          <Field label="希望勤務地" htmlFor="work_location_preferences" error={error("work_location_preferences")} hint="確認済みの希望のみ">
+            <input id="work_location_preferences" name="work_location_preferences" defaultValue={candidate?.work_location_preferences.join(", ") ?? ""} placeholder="Tokyo, Japan, Remote" className={fieldControlClass} />
+          </Field>
+          <Field label="希望年収（円）" htmlFor="expected_salary_jpy" error={error("expected_salary_jpy")} hint="未確認の場合は空欄">
+            <input id="expected_salary_jpy" name="expected_salary_jpy" type="number" min="0" max="100000000" step="10000" defaultValue={candidate?.expected_salary_jpy ?? ""} placeholder="7000000" className={fieldControlClass} />
+          </Field>
         </div>
       </section>
 
