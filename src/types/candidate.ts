@@ -44,6 +44,10 @@ export type Candidate = {
   rating: CandidateRating;
   portfolio_url: string | null;
   source_url: string | null;
+  source_type?: "manual" | "behance" | "artstation" | "linkedin" | "website";
+  external_id?: string | null;
+  discovered_at?: string | null;
+  discovery_item_id?: string | null;
   image_path: string | null;
   notes: string | null;
   ai_score: number | null;
