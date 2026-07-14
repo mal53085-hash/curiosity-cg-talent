@@ -47,13 +47,39 @@ function rawCandidate(formData: FormData) {
     "employment_types",
     "work_location_preferences",
     "expected_salary_jpy",
+    "current_country",
+    "current_city",
+    "japan_residency_status",
+    "japan_work_authorization",
+    "visa_status",
+    "japanese_level",
+    "english_level",
+    "interested_in_japan",
+    "willing_to_relocate_to_japan",
+    "willing_to_work_in_tokyo",
+    "remote_from_overseas",
+    "full_time_interest",
+    "freelance_interest",
+    "earliest_start_date",
+    "hiring_readiness_status",
+    "hiring_readiness_confidence",
+    "hiring_readiness_evidence",
+    "readiness_verification_status",
+    "hiring_pipeline_stage",
+    "hiring_closed_reason",
+    "next_action",
+    "next_interview_at",
     "notes",
   ] as const;
 
   return Object.fromEntries(names.map((name) => [name, String(formData.get(name) ?? "")]));
 }
 
-function candidatePayload(input: CandidateInput, userId: string) {
+function candidatePayload(input: CandidateInput, userId: string, formData: FormData) {
+  const bool = (value: "" | "true" | "false") => value === "" ? null : value === "true";
+  const readinessFields = ["current_country","current_city","japan_residency_status","japan_work_authorization","visa_status","japanese_level","english_level","interested_in_japan","willing_to_relocate_to_japan","willing_to_work_in_tokyo","remote_from_overseas","full_time_interest","freelance_interest","earliest_start_date"];
+  const allowedVerification = new Set(["verified","self_declared","publicly_indicated","unknown","needs_confirmation"]);
+  const readinessVerification = Object.fromEntries(readinessFields.map((field) => { const value = String(formData.get(`${field}_verification`) ?? input.readiness_verification_status); return [field, allowedVerification.has(value) ? value : "unknown"]; }));
   return {
     full_name: input.full_name,
     email: nullable(input.email),
@@ -76,6 +102,29 @@ function candidatePayload(input: CandidateInput, userId: string) {
     employment_types: splitList(input.employment_types),
     work_location_preferences: splitList(input.work_location_preferences),
     expected_salary_jpy: input.expected_salary_jpy === "" ? null : input.expected_salary_jpy,
+    current_country: nullable(input.current_country),
+    current_city: nullable(input.current_city),
+    japan_residency_status: nullable(input.japan_residency_status),
+    japan_work_authorization: bool(input.japan_work_authorization),
+    visa_status: nullable(input.visa_status),
+    japanese_level: nullable(input.japanese_level),
+    english_level: nullable(input.english_level),
+    interested_in_japan: bool(input.interested_in_japan),
+    willing_to_relocate_to_japan: bool(input.willing_to_relocate_to_japan),
+    willing_to_work_in_tokyo: bool(input.willing_to_work_in_tokyo),
+    remote_from_overseas: bool(input.remote_from_overseas),
+    full_time_interest: bool(input.full_time_interest),
+    freelance_interest: bool(input.freelance_interest),
+    earliest_start_date: nullable(input.earliest_start_date),
+    hiring_readiness_status: input.hiring_readiness_status,
+    hiring_readiness_confidence: input.hiring_readiness_confidence,
+    hiring_readiness_evidence: nullable(input.hiring_readiness_evidence),
+    readiness_verification: readinessVerification,
+    hiring_readiness_verified_at: Object.values(readinessVerification).some((value) => value === "verified") ? new Date().toISOString() : null,
+    hiring_pipeline_stage: input.hiring_pipeline_stage,
+    hiring_closed_reason: input.hiring_pipeline_stage === "closed" && input.hiring_closed_reason ? input.hiring_closed_reason : null,
+    next_action: nullable(input.next_action),
+    next_interview_at: nullable(input.next_interview_at),
     notes: nullable(input.notes),
     updated_by: userId,
   };
@@ -135,7 +184,7 @@ export async function createCandidateAction(
     const image = getImage(formData);
     const { data, error } = await supabase
       .from("candidates")
-      .insert({ ...candidatePayload(parsed.data, user.id), created_by: user.id })
+      .insert({ ...candidatePayload(parsed.data, user.id, formData), created_by: user.id })
       .select("id")
       .single();
     if (error) throw error;
@@ -199,7 +248,7 @@ export async function updateCandidateAction(
         : current.image_path;
     const { error: updateError } = await supabase
       .from("candidates")
-      .update({ ...candidatePayload(parsed.data, user.id), image_path: imagePath, work_image_count: imagePath ? 1 : 0 })
+      .update({ ...candidatePayload(parsed.data, user.id, formData), image_path: imagePath, work_image_count: imagePath ? 1 : 0 })
       .eq("id", id);
     if (updateError) throw updateError;
 

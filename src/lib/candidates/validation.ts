@@ -1,9 +1,11 @@
 import { z } from "zod";
-import { candidateRatings, candidateStatuses } from "@/types/candidate";
+import { candidateRatings, candidateStatuses, hiringClosedReasons, hiringPipelineStages, japanReadinessGrades, readinessVerificationStatuses } from "@/types/candidate";
 
 const optionalText = z.string().trim().max(2000).optional().default("");
 const optionalUrl = z.union([z.literal(""), z.string().trim().url().max(2000)]);
 const optionalEmail = z.union([z.literal(""), z.string().trim().email().max(320)]);
+const optionalBoolean = z.enum(["", "true", "false"]);
+const verification = z.enum(readinessVerificationStatuses).default("unknown");
 
 export const candidateSchema = z.object({
   full_name: z.string().trim().min(1, "氏名を入力してください").max(160),
@@ -33,6 +35,28 @@ export const candidateSchema = z.object({
     z.literal(""),
     z.coerce.number().int().min(0).max(100000000),
   ]),
+  current_country: z.string().trim().max(100).optional().default(""),
+  current_city: z.string().trim().max(100).optional().default(""),
+  japan_residency_status: z.string().trim().max(160).optional().default(""),
+  japan_work_authorization: optionalBoolean,
+  visa_status: z.string().trim().max(160).optional().default(""),
+  japanese_level: z.string().trim().max(80).optional().default(""),
+  english_level: z.string().trim().max(80).optional().default(""),
+  interested_in_japan: optionalBoolean,
+  willing_to_relocate_to_japan: optionalBoolean,
+  willing_to_work_in_tokyo: optionalBoolean,
+  remote_from_overseas: optionalBoolean,
+  full_time_interest: optionalBoolean,
+  freelance_interest: optionalBoolean,
+  earliest_start_date: z.union([z.literal(""), z.string().date()]),
+  hiring_readiness_status: z.enum(japanReadinessGrades),
+  hiring_readiness_confidence: z.coerce.number().int().min(0).max(100),
+  hiring_readiness_evidence: z.string().trim().max(4000).optional().default(""),
+  readiness_verification_status: verification,
+  hiring_pipeline_stage: z.enum(hiringPipelineStages),
+  hiring_closed_reason: z.union([z.literal(""), z.enum(hiringClosedReasons)]),
+  next_action: z.string().trim().max(500).optional().default(""),
+  next_interview_at: z.string().trim().max(40).optional().default(""),
   notes: z.string().trim().max(10000).optional().default(""),
 });
 

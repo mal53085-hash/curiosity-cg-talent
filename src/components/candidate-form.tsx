@@ -8,7 +8,7 @@ import type { CandidateActionState } from "@/app/actions/candidates";
 import { CandidateAvatar } from "@/components/candidate-avatar";
 import { buttonStyles } from "@/components/ui/button";
 import { Field, fieldControlClass } from "@/components/ui/field";
-import { candidateRatings, candidateStatuses, ratingLabels, statusLabels, type Candidate } from "@/types/candidate";
+import { candidateRatings, candidateStatuses, hiringClosedReasonLabels, hiringClosedReasons, hiringPipelineLabels, hiringPipelineStages, japanReadinessGrades, japanReadinessLabels, ratingLabels, readinessVerificationStatuses, statusLabels, type Candidate } from "@/types/candidate";
 
 type CandidateFormAction = (
   state: CandidateActionState,
@@ -18,6 +18,16 @@ type CandidateFormAction = (
 interface CandidateFormProps {
   action: CandidateFormAction;
   candidate?: Candidate;
+}
+
+const verificationLabels = { verified: "人が確認済み", self_declared: "本人申告", publicly_indicated: "公開記載", unknown: "不明", needs_confirmation: "要確認" } as const;
+
+function VerificationSelect({ field, candidate }: { field: string; candidate?: Candidate }) {
+  return <select name={`${field}_verification`} defaultValue={candidate?.readiness_verification[field] ?? "unknown"} aria-label={`${field}の確認状態`} className="mt-2 h-9 w-full rounded-lg border bg-[#faf9f5] px-2 text-[11px] text-muted">{readinessVerificationStatuses.map((status) => <option key={status} value={status}>{verificationLabels[status]}</option>)}</select>;
+}
+
+function BooleanReadinessField({ label, field, value, candidate }: { label: string; field: string; value: boolean | null | undefined; candidate?: Candidate }) {
+  return <Field label={label} htmlFor={field}><select id={field} name={field} defaultValue={value == null ? "" : String(value)} className={fieldControlClass}><option value="">未確認</option><option value="true">はい</option><option value="false">いいえ</option></select><VerificationSelect field={field} candidate={candidate}/></Field>;
 }
 
 function SaveButton({ isEditing }: { isEditing: boolean }) {
@@ -109,6 +119,30 @@ export function CandidateForm({ action, candidate }: CandidateFormProps) {
       </section>
 
       <section className="rounded-xl border bg-surface">
+        <div className="border-b px-5 py-4 sm:px-6"><h2 className="text-sm font-medium">日本勤務条件</h2><p className="mt-1 text-xs text-muted">事実と確認状態を分けて記録します。国籍、在留資格、語学力をAIの推測で入力しないでください。</p></div>
+        <div className="grid gap-5 p-5 sm:grid-cols-2 lg:grid-cols-3 sm:p-6">
+          <Field label="現在の国" htmlFor="current_country"><input id="current_country" name="current_country" defaultValue={candidate?.current_country ?? candidate?.country ?? ""} className={fieldControlClass}/><VerificationSelect field="current_country" candidate={candidate}/></Field>
+          <Field label="現在の都市" htmlFor="current_city"><input id="current_city" name="current_city" defaultValue={candidate?.current_city ?? candidate?.city ?? ""} className={fieldControlClass}/><VerificationSelect field="current_city" candidate={candidate}/></Field>
+          <Field label="日本在住状況" htmlFor="japan_residency_status"><input id="japan_residency_status" name="japan_residency_status" defaultValue={candidate?.japan_residency_status ?? ""} placeholder="例：日本在住 / 海外在住" className={fieldControlClass}/><VerificationSelect field="japan_residency_status" candidate={candidate}/></Field>
+          <BooleanReadinessField label="日本での就労許可" field="japan_work_authorization" value={candidate?.japan_work_authorization} candidate={candidate}/>
+          <Field label="ビザ・在留資格" htmlFor="visa_status"><input id="visa_status" name="visa_status" defaultValue={candidate?.visa_status ?? ""} className={fieldControlClass}/><VerificationSelect field="visa_status" candidate={candidate}/></Field>
+          <Field label="日本語レベル" htmlFor="japanese_level"><input id="japanese_level" name="japanese_level" defaultValue={candidate?.japanese_level ?? ""} placeholder="Native / N1 / N2 / Basic" className={fieldControlClass}/><VerificationSelect field="japanese_level" candidate={candidate}/></Field>
+          <Field label="英語レベル" htmlFor="english_level"><input id="english_level" name="english_level" defaultValue={candidate?.english_level ?? ""} placeholder="Native / Business / Conversational" className={fieldControlClass}/><VerificationSelect field="english_level" candidate={candidate}/></Field>
+          <BooleanReadinessField label="日本勤務への関心" field="interested_in_japan" value={candidate?.interested_in_japan} candidate={candidate}/>
+          <BooleanReadinessField label="日本への移住意向" field="willing_to_relocate_to_japan" value={candidate?.willing_to_relocate_to_japan} candidate={candidate}/>
+          <BooleanReadinessField label="東京勤務の意向" field="willing_to_work_in_tokyo" value={candidate?.willing_to_work_in_tokyo} candidate={candidate}/>
+          <BooleanReadinessField label="海外からのリモート" field="remote_from_overseas" value={candidate?.remote_from_overseas} candidate={candidate}/>
+          <BooleanReadinessField label="正社員への関心" field="full_time_interest" value={candidate?.full_time_interest} candidate={candidate}/>
+          <BooleanReadinessField label="業務委託への関心" field="freelance_interest" value={candidate?.freelance_interest} candidate={candidate}/>
+          <Field label="最短開始日" htmlFor="earliest_start_date"><input id="earliest_start_date" name="earliest_start_date" type="date" defaultValue={candidate?.earliest_start_date ?? ""} className={fieldControlClass}/><VerificationSelect field="earliest_start_date" candidate={candidate}/></Field>
+          <Field label="Japan Readiness" htmlFor="hiring_readiness_status"><select id="hiring_readiness_status" name="hiring_readiness_status" defaultValue={candidate?.hiring_readiness_status ?? "D"} className={fieldControlClass}>{japanReadinessGrades.map((grade) => <option key={grade} value={grade}>{japanReadinessLabels[grade]}</option>)}</select></Field>
+          <Field label="確認度（0–100）" htmlFor="hiring_readiness_confidence"><input id="hiring_readiness_confidence" name="hiring_readiness_confidence" type="number" min="0" max="100" defaultValue={candidate?.hiring_readiness_confidence ?? 0} className={fieldControlClass}/></Field>
+          <input type="hidden" name="readiness_verification_status" value="unknown"/>
+          <Field label="根拠" htmlFor="hiring_readiness_evidence" className="sm:col-span-2 lg:col-span-3" hint="公開記載または人が確認した内容だけを記録"><textarea id="hiring_readiness_evidence" name="hiring_readiness_evidence" rows={3} defaultValue={candidate?.hiring_readiness_evidence ?? ""} className={fieldControlClass}/></Field>
+        </div>
+      </section>
+
+      <section className="rounded-xl border bg-surface">
         <div className="border-b px-5 py-4 sm:px-6">
           <h2 className="text-sm font-medium">候補者画像</h2>
           <p className="mt-1 text-xs text-muted">JPEG・PNG・WebP、最大8MB</p>
@@ -147,6 +181,10 @@ export function CandidateForm({ action, candidate }: CandidateFormProps) {
               {candidateRatings.map((rating) => <option key={rating} value={rating}>{ratingLabels[rating]}</option>)}
             </select>
           </Field>
+          <Field label="Hiring Pipeline" htmlFor="hiring_pipeline_stage"><select id="hiring_pipeline_stage" name="hiring_pipeline_stage" defaultValue={candidate?.hiring_pipeline_stage ?? "new"} className={fieldControlClass}>{hiringPipelineStages.map((stage) => <option key={stage} value={stage}>{hiringPipelineLabels[stage]}</option>)}</select></Field>
+          <Field label="Closedの理由" htmlFor="hiring_closed_reason"><select id="hiring_closed_reason" name="hiring_closed_reason" defaultValue={candidate?.hiring_closed_reason ?? ""} className={fieldControlClass}><option value="">Closedの場合に選択</option>{hiringClosedReasons.map((reason) => <option key={reason} value={reason}>{hiringClosedReasonLabels[reason]}</option>)}</select></Field>
+          <Field label="次のアクション" htmlFor="next_action"><input id="next_action" name="next_action" defaultValue={candidate?.next_action ?? ""} className={fieldControlClass}/></Field>
+          <Field label="次回面談" htmlFor="next_interview_at"><input id="next_interview_at" name="next_interview_at" type="datetime-local" defaultValue={candidate?.next_interview_at?.slice(0,16) ?? ""} className={fieldControlClass}/></Field>
         </div>
       </section>
 

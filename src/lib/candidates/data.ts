@@ -28,6 +28,33 @@ const candidateColumns = [
   "employment_types",
   "work_location_preferences",
   "expected_salary_jpy",
+  "current_country",
+  "current_city",
+  "japan_residency_status",
+  "japan_work_authorization",
+  "visa_status",
+  "japanese_level",
+  "english_level",
+  "interested_in_japan",
+  "willing_to_relocate_to_japan",
+  "willing_to_work_in_tokyo",
+  "remote_from_overseas",
+  "full_time_interest",
+  "freelance_interest",
+  "earliest_start_date",
+  "hiring_readiness_status",
+  "hiring_readiness_confidence",
+  "hiring_readiness_evidence",
+  "hiring_readiness_verified_at",
+  "readiness_verification",
+  "hiring_pipeline_stage",
+  "hiring_closed_reason",
+  "contact_priority",
+  "contact_priority_reasons",
+  "next_action",
+  "last_contacted_at",
+  "next_interview_at",
+  "outreach_review_status",
   "image_path",
   "work_image_count",
   "data_quality_score",
@@ -76,6 +103,12 @@ export type CandidateFilters = {
   status?: CandidateStatus;
   rating?: CandidateRating;
   country?: string;
+  readiness?: string;
+  japaneseLevel?: string;
+  minimumCgFit?: number;
+  software?: string;
+  experience?: "junior" | "mid" | "senior";
+  pipeline?: string;
 };
 
 export async function getCandidates(filters: CandidateFilters = {}) {
@@ -99,6 +132,14 @@ export async function getCandidates(filters: CandidateFilters = {}) {
   if (filters.status) query = query.eq("status", filters.status);
   if (filters.rating) query = query.eq("rating", filters.rating);
   if (filters.country) query = query.eq("country", filters.country.slice(0, 100));
+  if (filters.readiness) query = query.eq("hiring_readiness_status", filters.readiness);
+  if (filters.japaneseLevel) query = query.ilike("japanese_level", `%${filters.japaneseLevel.slice(0, 40)}%`);
+  if (filters.minimumCgFit != null) query = query.gte("ai_score", filters.minimumCgFit);
+  if (filters.software) query = query.contains("software", [filters.software.slice(0, 80)]);
+  if (filters.pipeline) query = query.eq("hiring_pipeline_stage", filters.pipeline);
+  if (filters.experience === "junior") query = query.lte("years_experience", 3);
+  if (filters.experience === "mid") query = query.gte("years_experience", 4).lte("years_experience", 7);
+  if (filters.experience === "senior") query = query.gte("years_experience", 8);
 
   const { data, error } = await query;
   if (error) throw new Error(`候補者の取得に失敗しました: ${error.message}`);
