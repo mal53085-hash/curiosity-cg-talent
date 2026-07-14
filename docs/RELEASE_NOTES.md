@@ -1,5 +1,13 @@
 # dig Release Notes
 
+## 2026-07-14 — Visual Search result experience fix
+
+- Visual Search完了後に`/visual-search/[id]`へ自動遷移
+- 保存済み検索から結果再表示、削除、特徴量だけの再実行・複製を追加
+- Visual Fit、Brand DNA、Lighting、Composition、Material、Luxury Brand、Display Design、Color Control、Visual Silenceを結果画面に表示
+- 候補者0件時に明示的なEmpty StateとDiscovery導線を表示
+- v0.4.6 Reference Privacy Modeを維持し、複製・再実行でも画像を保存・再取得しない
+
 ## 2026-07-14 — v0.4.6 Reference Privacy Mode
 
 - dig EnterpriseのVisual SearchでReference Privacy Modeを常時ON化
