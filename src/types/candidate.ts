@@ -32,6 +32,22 @@ export const aiCriterionKeys = [
 export type AiCriterionKey = (typeof aiCriterionKeys)[number];
 export type AiScores = Partial<Record<AiCriterionKey, number>>;
 
+export const readinessVerificationStatuses = [
+  "verified",
+  "self_declared",
+  "publicly_indicated",
+  "unknown",
+  "needs_confirmation",
+] as const;
+export const japanReadinessGrades = ["A", "B", "C", "D", "blocked"] as const;
+export const hiringPipelineStages = ["new", "shortlist", "contacted", "interview", "offer", "closed"] as const;
+export const hiringClosedReasons = ["hired", "rejected_by_company", "declined_by_candidate", "no_response", "not_available", "duplicate", "future_candidate"] as const;
+
+export type ReadinessVerificationStatus = (typeof readinessVerificationStatuses)[number];
+export type JapanReadinessGrade = (typeof japanReadinessGrades)[number];
+export type HiringPipelineStage = (typeof hiringPipelineStages)[number];
+export type HiringClosedReason = (typeof hiringClosedReasons)[number];
+
 export type Candidate = {
   id: string;
   full_name: string;
@@ -55,6 +71,33 @@ export type Candidate = {
   employment_types: string[];
   work_location_preferences: string[];
   expected_salary_jpy: number | null;
+  current_country: string | null;
+  current_city: string | null;
+  japan_residency_status: string | null;
+  japan_work_authorization: boolean | null;
+  visa_status: string | null;
+  japanese_level: string | null;
+  english_level: string | null;
+  interested_in_japan: boolean | null;
+  willing_to_relocate_to_japan: boolean | null;
+  willing_to_work_in_tokyo: boolean | null;
+  remote_from_overseas: boolean | null;
+  full_time_interest: boolean | null;
+  freelance_interest: boolean | null;
+  earliest_start_date: string | null;
+  hiring_readiness_status: JapanReadinessGrade;
+  hiring_readiness_confidence: number;
+  hiring_readiness_evidence: string | null;
+  hiring_readiness_verified_at: string | null;
+  readiness_verification: Partial<Record<string, ReadinessVerificationStatus>>;
+  hiring_pipeline_stage: HiringPipelineStage;
+  hiring_closed_reason: HiringClosedReason | null;
+  contact_priority: number;
+  contact_priority_reasons: string[];
+  next_action: string | null;
+  last_contacted_at: string | null;
+  next_interview_at: string | null;
+  outreach_review_status: "not_requested" | "draft" | "review_pending" | "approved";
   source_type?: "manual" | "behance" | "artstation" | "linkedin" | "website" | "cgarchitect" | "company";
   external_id?: string | null;
   discovered_at?: string | null;
@@ -116,4 +159,31 @@ export const aiCriterionLabels: Record<AiCriterionKey, string> = {
   retail_fit: "リテール適性",
   artificial_lighting: "人工照明表現",
   design_understanding: "デザイン理解",
+};
+
+export const japanReadinessLabels: Record<JapanReadinessGrade, string> = {
+  A: "A · 採用条件を概ね確認済み",
+  B: "B · 一部確認後に有力",
+  C: "C · 海外リモート／業務委託",
+  D: "D · 勤務条件が未確認",
+  blocked: "Blocked · 現条件では採用困難",
+};
+
+export const hiringPipelineLabels: Record<HiringPipelineStage, string> = {
+  new: "New",
+  shortlist: "Shortlist",
+  contacted: "Contacted",
+  interview: "Interview",
+  offer: "Offer",
+  closed: "Closed",
+};
+
+export const hiringClosedReasonLabels: Record<HiringClosedReason, string> = {
+  hired: "Hired",
+  rejected_by_company: "Rejected by company",
+  declined_by_candidate: "Declined by candidate",
+  no_response: "No response",
+  not_available: "Not available",
+  duplicate: "Duplicate",
+  future_candidate: "Future candidate",
 };
