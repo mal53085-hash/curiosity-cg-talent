@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import {
   LayoutDashboard,
+  BarChart3,
+  ScanSearch,
   Radar,
   LogOut,
   Menu,
@@ -20,6 +22,8 @@ import { cn } from "@/lib/utils";
 const navigation = [
   { href: "/dashboard", label: "ダッシュボード", icon: LayoutDashboard },
   { href: "/scout", label: "AI Scout", icon: Sparkles },
+  { href: "/visual-search", label: "Visual Search", icon: ScanSearch },
+  { href: "/data-quality", label: "データ品質", icon: BarChart3 },
   { href: "/discovery", label: "Discovery", icon: Radar },
   { href: "/candidates", label: "候補者", icon: Users },
 ] as const;
