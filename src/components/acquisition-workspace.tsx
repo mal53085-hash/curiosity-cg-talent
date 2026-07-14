@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { AlertTriangle, Check, FileSpreadsheet, Link2, Loader2, Upload, UserPlus } from "lucide-react";
+import { AlertTriangle, Check, Download, FileSpreadsheet, Link2, Loader2, Upload, UserPlus } from "lucide-react";
 import {
   acquisitionFields,
   type AcquisitionField,
@@ -19,7 +19,7 @@ import {
   splitAcquisitionList,
 } from "@/lib/acquisition/import";
 import { sourceTypeLabels, type DiscoverySourceType } from "@/types/discovery";
-import { Button } from "@/components/ui/button";
+import { Button, buttonStyles } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type Mode = "url" | "csv" | "manual";
@@ -128,6 +128,7 @@ export function AcquisitionWorkspace() {
             <div>
               <h2 className="text-sm font-medium">CSVインポート</h2>
               <p className="mt-2 text-xs leading-5 text-muted">最大100件。メール、電話、住所列は保存せず、AIにも送りません。</p>
+              <a href="/templates/candidate-import-template.csv" download className={buttonStyles("secondary", "mt-4 w-fit text-xs")}><Download size={14} />CSVテンプレートをダウンロード</a>
               <label className="mt-5 flex cursor-pointer flex-col items-center rounded-xl border border-dashed bg-[#faf9f5] px-5 py-10 text-center">
                 <Upload size={20} className="text-muted" /><span className="mt-3 text-sm">CSVを選択</span><span className="mt-1 text-xs text-muted">UTF-8 / 1MB以下</span>
                 <input type="file" accept=".csv,text/csv" className="sr-only" onChange={(event) => void readCsv(event.target.files?.[0])} />
