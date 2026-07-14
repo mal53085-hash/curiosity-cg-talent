@@ -29,7 +29,7 @@ const fieldLabels: Record<AcquisitionField, string> = {
   work_location_preferences: "勤務地希望", notes_for_review: "確認メモ",
 };
 
-export function AcquisitionWorkspace() {
+export function AcquisitionWorkspace({ simple = false }: { simple?: boolean }) {
   const [mode, setMode] = useState<Mode>("url");
   const [urlText, setUrlText] = useState("");
   const [csvText, setCsvText] = useState("");
@@ -41,6 +41,7 @@ export function AcquisitionWorkspace() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ created: number; duplicates: number; failed: number } | null>(null);
+  const [initialReadiness, setInitialReadiness] = useState("D");
   const [manual, setManual] = useState({ name: "", source_type: "manual" as DiscoverySourceType, source_url: "", portfolio_url: "", region: "", software: "", skills: "", public_profile: "", research_status: "new" });
 
   const forbiddenHeaders = headers.filter((header) => forbiddenCsvColumns.includes(header.toLowerCase()));
@@ -86,7 +87,8 @@ export function AcquisitionWorkspace() {
     if (!preview || !confirmed) return;
     setPending(true); setError(null);
     try {
-      const response = await fetch("/api/acquisition/confirm", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind: mode, filename: csvFilename || undefined, columnMapping: mode === "csv" ? mapping : undefined, rows: preview.rows }) });
+      const rows = preview.rows.map((row) => ({ ...row, data: { ...row.data, notes_for_review: `${row.data.notes_for_review || ""}${row.data.notes_for_review ? " / " : ""}Japan Readiness initial: ${initialReadiness}` } }));
+      const response = await fetch("/api/acquisition/confirm", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind: mode, filename: csvFilename || undefined, columnMapping: mode === "csv" ? mapping : undefined, rows }) });
       const body = await response.json() as { created: number; duplicates: number; failed: number; error?: string };
       if (!response.ok) throw new Error(body.error || "Inboxへ登録できませんでした。");
       setResult(body); setPreview(null); setConfirmed(false);
@@ -111,18 +113,19 @@ export function AcquisitionWorkspace() {
     <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
       <section className="rounded-xl border bg-surface">
         <div className="flex gap-1 overflow-x-auto border-b p-2">
-          <ModeButton active={mode === "url"} onClick={() => { setMode("url"); resetPreview(); }} icon={<Link2 size={14} />} label="URL一括" />
-          <ModeButton active={mode === "csv"} onClick={() => { setMode("csv"); resetPreview(); }} icon={<FileSpreadsheet size={14} />} label="CSV" />
-          <ModeButton active={mode === "manual"} onClick={() => { setMode("manual"); resetPreview(); }} icon={<UserPlus size={14} />} label="手動簡易" />
+          <ModeButton active={mode === "url"} onClick={() => { setMode("url"); resetPreview(); }} icon={<Link2 size={14} />} label={simple ? "URLを貼る" : "URL一括"} />
+          <ModeButton active={mode === "csv"} onClick={() => { setMode("csv"); resetPreview(); }} icon={<FileSpreadsheet size={14} />} label={simple ? "CSVを読み込む" : "CSV"} />
+          <ModeButton active={mode === "manual"} onClick={() => { setMode("manual"); resetPreview(); }} icon={<UserPlus size={14} />} label={simple ? "手動で追加" : "手動簡易"} />
         </div>
 
         <div className="p-5 sm:p-6">
           {mode === "url" ? (
             <div>
-              <h2 className="text-sm font-medium">URL一括登録</h2>
-              <p className="mt-2 text-xs leading-5 text-muted">1行1URL、最大100件。Behance、ArtStation、LinkedIn、CGArchitect、個人／会社サイトを調査キューへ送ります。</p>
+              <h2 className="text-sm font-medium">候補者のURLを貼る</h2>
+              <p className="mt-2 text-xs leading-5 text-muted">公開プロフィールを確認し、登録前に内容と重複を確認できます。LinkedInはURLのみ扱います。</p>
               <textarea value={urlText} onChange={(event) => { setUrlText(event.target.value); resetPreview(); }} rows={12} maxLength={210000} placeholder={"https://www.behance.net/...\nhttps://www.artstation.com/...\nhttps://www.linkedin.com/in/..."} className="mt-5 w-full rounded-xl border bg-[#faf9f5] px-4 py-3 font-mono text-xs leading-6 outline-none focus:border-[#77756d]" />
-              <Button type="button" className="mt-4" disabled={pending || !urlText.trim()} onClick={() => requestPreview("url", urlText)}>{pending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}登録前に確認</Button>
+              <label className="mt-4 block text-xs"><span className="text-muted">Japan Readinessの初期状態</span><select value={initialReadiness} onChange={(event) => setInitialReadiness(event.target.value)} className="mt-2 h-10 w-full rounded-lg border bg-white px-3 text-sm"><option value="D">D · 勤務条件は未確認</option><option value="B">B · 一部確認後に有力</option><option value="C">C · 海外リモート候補</option><option value="A">A · 採用条件を概ね確認済み</option></select></label>
+              <Button type="button" className="mt-4" disabled={pending || !urlText.trim()} onClick={() => requestPreview("url", urlText)}>{pending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}公開情報を確認</Button>
             </div>
           ) : mode === "csv" ? (
             <div>
@@ -141,7 +144,7 @@ export function AcquisitionWorkspace() {
           ) : (
             <form onSubmit={previewManual}>
               <h2 className="text-sm font-medium">手動簡易登録</h2>
-              <p className="mt-2 text-xs leading-5 text-muted">公開情報だけで仮登録します。正式候補への登録はDiscoveryで別途承認します。</p>
+              <p className="mt-2 text-xs leading-5 text-muted">公開情報を入力し、確認リストへ追加します。</p>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <TextField label="公開名 *" value={manual.name} onChange={(value) => setManual({ ...manual, name: value })} maxLength={200} />
                 <label className="text-xs"><span className="text-muted">ソース種別</span><select value={manual.source_type} onChange={(event) => setManual({ ...manual, source_type: event.target.value as DiscoverySourceType })} className="mt-2 h-10 w-full rounded-lg border bg-white px-3 text-sm">{Object.entries(sourceTypeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
@@ -161,9 +164,9 @@ export function AcquisitionWorkspace() {
       </section>
 
       <aside className="space-y-5">
-        {preview ? <PreviewPanel preview={preview} confirmed={confirmed} setConfirmed={setConfirmed} pending={pending} onConfirm={confirmImport} /> : <section className="rounded-xl border bg-[#f8f7f2] p-5"><h2 className="text-sm font-medium">登録フロー</h2><ol className="mt-4 space-y-3 text-xs leading-5 text-muted"><li>1. URL／CSVを検証</li><li>2. 対応・重複・エラーを人が確認</li><li>3. Discovery Inboxへ仮登録</li><li>4. Research Queueで調査・承認</li></ol><p className="mt-5 border-t pt-4 text-[11px] leading-5 text-muted">LinkedInはURL・手入力・CSVだけを扱い、プロフィールの自動取得は行いません。</p></section>}
+        {preview ? <PreviewPanel preview={preview} confirmed={confirmed} setConfirmed={setConfirmed} pending={pending} onConfirm={confirmImport} simple={simple} /> : <section className="rounded-xl border bg-[#f8f7f2] p-5"><h2 className="text-sm font-medium">登録フロー</h2><ol className="mt-4 space-y-3 text-xs leading-5 text-muted"><li>1. URL／CSVを入力</li><li>2. 公開情報と重複を確認</li><li>3. Japan Readinessの初期状態を選択</li><li>4. 確認リストへ追加</li></ol><p className="mt-5 border-t pt-4 text-[11px] leading-5 text-muted">LinkedInはURL・手入力・CSVだけを扱い、プロフィールの自動取得は行いません。</p></section>}
         {error ? <p role="alert" className="rounded-xl border border-[#dec4c0] bg-[#f5e9e7] p-4 text-xs text-danger">{error}</p> : null}
-        {result ? <section className="rounded-xl border border-[#cfd8cf] bg-[#f3f7f3] p-5"><h2 className="flex items-center gap-2 text-sm font-medium"><Check size={15} />Inboxへ登録しました</h2><p className="mt-3 text-xs text-muted">新規 {result.created}件・重複 {result.duplicates}件・失敗 {result.failed}件</p><Link href="/discovery/research" className="mt-4 inline-block text-xs underline underline-offset-4">Research Queueを開く</Link></section> : null}
+        {result ? <section className="rounded-xl border border-[#cfd8cf] bg-[#f3f7f3] p-5"><h2 className="flex items-center gap-2 text-sm font-medium"><Check size={15} />確認リストへ追加しました</h2><p className="mt-3 text-xs text-muted">新規 {result.created}件・重複 {result.duplicates}件・失敗 {result.failed}件</p><Link href="/discovery/research" className="mt-4 inline-block text-xs underline underline-offset-4">候補を確認する</Link></section> : null}
       </aside>
     </div>
   );
@@ -177,9 +180,9 @@ function TextField({ label, value, onChange, maxLength = 2048, list }: { label: 
   return <label className="text-xs"><span className="text-muted">{label}</span><input value={value} onChange={(event) => onChange(event.target.value)} maxLength={maxLength} list={list} className="mt-2 h-10 w-full rounded-lg border bg-white px-3 text-sm" /></label>;
 }
 
-function PreviewPanel({ preview, confirmed, setConfirmed, pending, onConfirm }: { preview: AcquisitionPreview; confirmed: boolean; setConfirmed: (value: boolean) => void; pending: boolean; onConfirm: () => void }) {
+function PreviewPanel({ preview, confirmed, setConfirmed, pending, onConfirm, simple }: { preview: AcquisitionPreview; confirmed: boolean; setConfirmed: (value: boolean) => void; pending: boolean; onConfirm: () => void; simple: boolean }) {
   const summary = preview.summary;
-  return <section className="rounded-xl border bg-surface p-5"><h2 className="text-sm font-medium">登録前の確認</h2><div className="mt-4 grid grid-cols-2 gap-2">{[["URL / 行", summary.total], ["対応", summary.supported], ["未対応", summary.unsupported], ["重複", summary.duplicates], ["新規", summary.newItems]].map(([label, value]) => <div key={String(label)} className="rounded-lg border bg-[#faf9f5] p-3"><p className="text-[10px] text-muted">{label}</p><p className="mt-1 font-mono text-xl">{value}</p></div>)}</div><div className="mt-4 max-h-52 space-y-2 overflow-y-auto">{preview.rows.map((row) => <PreviewRow key={row.rowNumber} row={row} />)}</div><div className="mt-5 border-t pt-4"><p className="text-[10px] font-medium tracking-wide text-muted uppercase">取得予定情報</p><p className="mt-2 text-xs leading-5 text-muted">{summary.plannedFields.join("、")}</p>{summary.excludedColumns.length ? <p className="mt-2 text-xs text-[#8b6957]">保存しない列：{summary.excludedColumns.join("、")}</p> : null}</div><label className="mt-5 flex items-start gap-3 rounded-lg border bg-[#faf9f5] p-3 text-xs leading-5"><input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} className="mt-1 size-4 accent-[#252522]" /><span>内容と重複を確認しました。正式候補にはせずDiscovery Inboxへ登録します。</span></label><Button type="button" className="mt-4 w-full" disabled={!confirmed || pending || summary.newItems === 0} onClick={onConfirm}>{pending ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}Inboxへ登録</Button></section>;
+  return <section className="rounded-xl border bg-surface p-5"><h2 className="text-sm font-medium">登録前の確認</h2><div className="mt-4 grid grid-cols-2 gap-2">{[["URL / 行", summary.total], ["対応", summary.supported], ["未対応", summary.unsupported], ["重複", summary.duplicates], ["新規", summary.newItems]].map(([label, value]) => <div key={String(label)} className="rounded-lg border bg-[#faf9f5] p-3"><p className="text-[10px] text-muted">{label}</p><p className="mt-1 font-mono text-xl">{value}</p></div>)}</div><div className="mt-4 max-h-52 space-y-2 overflow-y-auto">{preview.rows.map((row) => <PreviewRow key={row.rowNumber} row={row} />)}</div><div className="mt-5 border-t pt-4"><p className="text-[10px] font-medium tracking-wide text-muted uppercase">取得予定情報</p><p className="mt-2 text-xs leading-5 text-muted">{summary.plannedFields.join("、")}</p>{summary.excludedColumns.length ? <p className="mt-2 text-xs text-[#8b6957]">保存しない列：{summary.excludedColumns.join("、")}</p> : null}</div><label className="mt-5 flex items-start gap-3 rounded-lg border bg-[#faf9f5] p-3 text-xs leading-5"><input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} className="mt-1 size-4 accent-[#252522]" /><span>{simple ? "内容と重複を確認し、確認リストへ追加します。" : "内容と重複を確認しました。正式候補にはせずDiscovery Inboxへ登録します。"}</span></label><Button type="button" className="mt-4 w-full" disabled={!confirmed || pending || summary.newItems === 0} onClick={onConfirm}>{pending ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}{simple ? "Add to Candidates" : "Inboxへ登録"}</Button></section>;
 }
 
 function PreviewRow({ row }: { row: AcquisitionPreviewRow }) {
