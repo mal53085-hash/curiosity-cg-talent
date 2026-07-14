@@ -1,0 +1,172 @@
+"use client";
+
+import Link from "next/link";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
+import { ImagePlus, Sparkles } from "lucide-react";
+import type { CandidateActionState } from "@/app/actions/candidates";
+import { CandidateAvatar } from "@/components/candidate-avatar";
+import { buttonStyles } from "@/components/ui/button";
+import { Field, fieldControlClass } from "@/components/ui/field";
+import { candidateRatings, candidateStatuses, ratingLabels, statusLabels, type Candidate } from "@/types/candidate";
+
+type CandidateFormAction = (
+  state: CandidateActionState,
+  formData: FormData,
+) => Promise<CandidateActionState>;
+
+interface CandidateFormProps {
+  action: CandidateFormAction;
+  candidate?: Candidate;
+}
+
+function SaveButton({ isEditing }: { isEditing: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" disabled={pending} className={buttonStyles("primary", "min-w-32")}>
+      {pending ? "保存中…" : isEditing ? "変更を保存" : "候補者を追加"}
+    </button>
+  );
+}
+
+export function CandidateForm({ action, candidate }: CandidateFormProps) {
+  const [state, formAction] = useActionState(action, undefined);
+  const error = (name: string) => state?.fieldErrors?.[name]?.[0];
+  const isEditing = Boolean(candidate);
+
+  return (
+    <form action={formAction} className="space-y-6">
+      {state?.error ? (
+        <p role="alert" className="rounded-xl border border-[#dec4c0] bg-[#f5e9e7] px-4 py-3 text-sm text-danger">
+          {state.error}
+        </p>
+      ) : null}
+
+      <section className="rounded-xl border bg-surface">
+        <div className="border-b px-5 py-4 sm:px-6">
+          <h2 className="text-sm font-medium">基本情報</h2>
+          <p className="mt-1 text-xs text-muted">候補者のプロフィールと連絡先</p>
+        </div>
+        <div className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
+          <Field label="氏名 / タレント名 *" htmlFor="full_name" error={error("full_name")}>
+            <input id="full_name" name="full_name" required defaultValue={candidate?.full_name} className={fieldControlClass} />
+          </Field>
+          <Field label="専門領域 *" htmlFor="primary_role" error={error("primary_role")}>
+            <input id="primary_role" name="primary_role" required defaultValue={candidate?.primary_role} placeholder="例：Senior Architectural Visualizer" className={fieldControlClass} />
+          </Field>
+          <Field label="メール" htmlFor="email" error={error("email")}>
+            <input id="email" name="email" type="email" defaultValue={candidate?.email ?? ""} className={fieldControlClass} />
+          </Field>
+          <Field label="電話番号" htmlFor="phone" error={error("phone")}>
+            <input id="phone" name="phone" type="tel" defaultValue={candidate?.phone ?? ""} className={fieldControlClass} />
+          </Field>
+          <Field label="国・地域 *" htmlFor="country" error={error("country")}>
+            <input id="country" name="country" required defaultValue={candidate?.country ?? "Japan"} className={fieldControlClass} />
+          </Field>
+          <Field label="都市" htmlFor="city" error={error("city")}>
+            <input id="city" name="city" defaultValue={candidate?.city ?? ""} className={fieldControlClass} />
+          </Field>
+          <Field label="経験年数" htmlFor="years_experience" error={error("years_experience")}>
+            <input id="years_experience" name="years_experience" type="number" min="0" max="80" defaultValue={candidate?.years_experience ?? ""} className={fieldControlClass} />
+          </Field>
+          <Field label="稼働可能時期" htmlFor="availability" error={error("availability")}>
+            <input id="availability" name="availability" defaultValue={candidate?.availability ?? ""} placeholder="例：2026年9月〜" className={fieldControlClass} />
+          </Field>
+          <Field label="スキル" htmlFor="skills" error={error("skills")} hint="カンマまたは改行で区切って入力" className="sm:col-span-2">
+            <textarea id="skills" name="skills" rows={3} defaultValue={candidate?.skills.join(", ") ?? ""} placeholder="3ds Max, Corona Renderer, V-Ray, Unreal Engine" className={fieldControlClass} />
+          </Field>
+          <Field label="言語" htmlFor="languages" error={error("languages")} hint="カンマまたは改行で区切って入力" className="sm:col-span-2">
+            <input id="languages" name="languages" defaultValue={candidate?.languages.join(", ") ?? ""} placeholder="Japanese, English" className={fieldControlClass} />
+          </Field>
+          <Field label="ポートフォリオURL" htmlFor="portfolio_url" error={error("portfolio_url")}>
+            <input id="portfolio_url" name="portfolio_url" type="url" defaultValue={candidate?.portfolio_url ?? ""} placeholder="https://" className={fieldControlClass} />
+          </Field>
+          <Field label="発見元URL" htmlFor="source_url" error={error("source_url")}>
+            <input id="source_url" name="source_url" type="url" defaultValue={candidate?.source_url ?? ""} placeholder="Behance / LinkedIn / Instagram" className={fieldControlClass} />
+          </Field>
+        </div>
+      </section>
+
+      <section className="rounded-xl border bg-surface">
+        <div className="border-b px-5 py-4 sm:px-6">
+          <h2 className="text-sm font-medium">候補者画像</h2>
+          <p className="mt-1 text-xs text-muted">JPEG・PNG・WebP、最大8MB</p>
+        </div>
+        <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:p-6">
+          <CandidateAvatar name={candidate?.full_name ?? "New talent"} imageUrl={candidate?.image_url} className="size-24 text-xl" />
+          <div className="flex-1">
+            <label htmlFor="image" className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed bg-[#faf9f5] px-4 text-sm text-muted transition hover:border-[#b9b7ae] hover:text-foreground sm:justify-start">
+              <ImagePlus size={17} />
+              {candidate?.image_path ? "新しい画像に差し替える" : "画像を選択"}
+            </label>
+            <input id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" />
+            {candidate?.image_path ? (
+              <label className="mt-3 flex items-center gap-2 text-xs text-muted">
+                <input type="checkbox" name="remove_image" className="size-4 rounded border-line" />
+                現在の画像を削除
+              </label>
+            ) : null}
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-xl border bg-surface">
+        <div className="border-b px-5 py-4 sm:px-6">
+          <h2 className="text-sm font-medium">選考管理</h2>
+          <p className="mt-1 text-xs text-muted">評価ランクと現在の選考ステータス</p>
+        </div>
+        <div className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
+          <Field label="ステータス" htmlFor="status" error={error("status")}>
+            <select id="status" name="status" defaultValue={candidate?.status ?? "sourcing"} className={fieldControlClass}>
+              {candidateStatuses.map((status) => <option key={status} value={status}>{statusLabels[status]}</option>)}
+            </select>
+          </Field>
+          <Field label="総合評価" htmlFor="rating" error={error("rating")}>
+            <select id="rating" name="rating" defaultValue={candidate?.rating ?? "unrated"} className={fieldControlClass}>
+              {candidateRatings.map((rating) => <option key={rating} value={rating}>{ratingLabels[rating]}</option>)}
+            </select>
+          </Field>
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-xl border bg-surface">
+        <div className="flex items-center gap-3 border-b bg-[#f8f7f2] px-5 py-4 sm:px-6">
+          <span className="grid size-8 place-items-center rounded-lg bg-[#e7e5dd] text-[#57564f]"><Sparkles size={15} /></span>
+          <div>
+            <h2 className="text-sm font-medium">AI評価</h2>
+            <p className="mt-0.5 text-xs text-muted">ポートフォリオ評価結果を記録</p>
+          </div>
+          <span className="ml-auto rounded-full border bg-surface px-2 py-1 text-[9px] tracking-[0.12em] text-muted uppercase">Preview</span>
+        </div>
+        <div className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
+          <Field label="AIスコア（0〜100）" htmlFor="ai_score" error={error("ai_score")}>
+            <input id="ai_score" name="ai_score" type="number" min="0" max="100" defaultValue={candidate?.ai_score ?? ""} className={fieldControlClass} />
+          </Field>
+          <div className="hidden sm:block" />
+          <Field label="評価サマリー" htmlFor="ai_summary" error={error("ai_summary")} className="sm:col-span-2">
+            <textarea id="ai_summary" name="ai_summary" rows={4} defaultValue={candidate?.ai_summary ?? ""} placeholder="構図、ライティング、マテリアル表現、ブランド理解などの総評" className={fieldControlClass} />
+          </Field>
+          <Field label="強み" htmlFor="ai_strengths" error={error("ai_strengths")} hint="カンマまたは改行で区切って入力">
+            <textarea id="ai_strengths" name="ai_strengths" rows={3} defaultValue={candidate?.ai_strengths.join(", ") ?? ""} className={fieldControlClass} />
+          </Field>
+          <Field label="確認ポイント / リスク" htmlFor="ai_risks" error={error("ai_risks")} hint="カンマまたは改行で区切って入力">
+            <textarea id="ai_risks" name="ai_risks" rows={3} defaultValue={candidate?.ai_risks.join(", ") ?? ""} className={fieldControlClass} />
+          </Field>
+        </div>
+      </section>
+
+      <section className="rounded-xl border bg-surface p-5 sm:p-6">
+        <Field label="社内メモ" htmlFor="notes" error={error("notes")} hint="候補者本人には公開されません">
+          <textarea id="notes" name="notes" rows={6} defaultValue={candidate?.notes ?? ""} placeholder="面談メモ、次のアクション、確認事項など" className={fieldControlClass} />
+        </Field>
+      </section>
+
+      <div className="flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row sm:justify-end">
+        <Link href={candidate ? `/candidates/${candidate.id}` : "/candidates"} className={buttonStyles("secondary")}>
+          キャンセル
+        </Link>
+        <SaveButton isEditing={isEditing} />
+      </div>
+    </form>
+  );
+}
