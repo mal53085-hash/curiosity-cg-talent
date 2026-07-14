@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isSameOrigin } from "@/lib/api-security";
 import { evaluateCandidate } from "@/lib/ai/candidate-evaluation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,9 +13,7 @@ export async function POST(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const origin = request.headers.get("origin");
-  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  if (!origin || !host || !URL.canParse(origin) || new URL(origin).host !== host) {
+  if (!isSameOrigin(request)) {
     return Response.json({ error: "不正なリクエストです。" }, { status: 403 });
   }
 
@@ -29,28 +28,44 @@ export async function POST(
     return Response.json({ error: "ログインが必要です。" }, { status: 401 });
   }
 
-  const { data: candidate, error: candidateError } = await supabase
+  const [{ data: candidate, error: candidateError }, { data: eligibility, error: eligibilityError }, { data: rubric, error: rubricError }] = await Promise.all([
+    supabase
     .from("candidates")
-    .select("id,primary_role,years_experience,skills,languages,portfolio_url,image_path")
+    .select("id,primary_role,years_experience,skills,languages,portfolio_url,public_profile")
     .eq("id", id)
-    .maybeSingle();
-  if (candidateError) {
+    .maybeSingle(),
+    supabase.from("candidate_ai_review_eligibility").select("eligible,reasons").eq("candidate_id", id).maybeSingle(),
+    supabase.from("evaluation_rubric_versions").select("id,version,axes").order("published_at", { ascending: false }).limit(1).maybeSingle(),
+  ]);
+  if (candidateError || eligibilityError || rubricError) {
     return Response.json({ error: "候補者情報を取得できませんでした。" }, { status: 500 });
   }
   if (!candidate) {
     return Response.json({ error: "候補者が見つかりません。" }, { status: 404 });
   }
-  if (!candidate.image_path) {
+  if (!eligibility?.eligible) {
     return Response.json(
-      { error: "AI採点には候補者の作品画像が必要です。" },
+      { error: "AI評価条件が揃っていません。", reasons: eligibility?.reasons ?? ["評価可否を確認できません"] },
       { status: 422 },
     );
   }
+  if (!rubric || !Array.isArray(rubric.axes)) return Response.json({ error: "有効な評価基準がありません。" }, { status: 503 });
+
+  const { data: image, error: imageRecordError } = await supabase.from("candidate_portfolio_images")
+    .select("id,storage_path,content_type,usage_status")
+    .eq("candidate_id", id)
+    .eq("selected_for_ai_review", true)
+    .in("usage_status", ["review_copy_authorized", "internal_reference_authorized"])
+    .not("storage_path", "is", null)
+    .order("image_order")
+    .limit(1)
+    .maybeSingle();
+  if (imageRecordError || !image?.storage_path) return Response.json({ error: "AI利用許可済みの保存画像がありません。" }, { status: 422 });
 
   try {
     const { data: imageBlob, error: imageError } = await supabase.storage
-      .from("candidate-images")
-      .download(candidate.image_path);
+      .from("candidate-portfolio-images")
+      .download(image.storage_path);
     if (imageError || !imageBlob) {
       throw new Error("候補者画像を取得できませんでした。");
     }
@@ -68,10 +83,12 @@ export async function POST(
         skills: candidate.skills,
         languages: candidate.languages,
         portfolioUrl: candidate.portfolio_url,
+        publicDescription: candidate.public_profile,
       },
       image: new Uint8Array(await imageBlob.arrayBuffer()),
       imageMimeType: imageBlob.type as "image/jpeg" | "image/png" | "image/webp",
       userId: authData.user.id,
+      rubricAxes: rubric.axes as Parameters<typeof evaluateCandidate>[0]["rubricAxes"],
     });
 
     const evaluatedAt = new Date().toISOString();
@@ -88,10 +105,19 @@ export async function POST(
         ai_interview_questions: evaluation.interview_questions,
         ai_model: model,
         ai_evaluated_at: evaluatedAt,
+        ai_rubric_version_id: rubric.id,
         updated_by: authData.user.id,
       })
       .eq("id", id);
     if (updateError) throw new Error("AI評価結果を保存できませんでした。");
+
+    await supabase.from("audit_events").insert({
+      event_type: "candidate.ai_evaluated",
+      resource_type: "candidate",
+      resource_id: id,
+      metadata: { model, rubric_version_id: rubric.id, rubric_version: rubric.version, portfolio_image_id: image.id },
+      actor_id: authData.user.id,
+    });
 
     return Response.json({ evaluation, model, evaluatedAt });
   } catch (error) {

@@ -44,6 +44,7 @@ const candidateColumns = [
   "ai_interview_questions",
   "ai_model",
   "ai_evaluated_at",
+  "ai_rubric_version_id",
   "created_by",
   "updated_by",
   "created_at",

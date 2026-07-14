@@ -12,10 +12,12 @@ import {
 } from "lucide-react";
 import { AiEvaluationPanel } from "@/components/ai-evaluation-panel";
 import { CandidateAvatar } from "@/components/candidate-avatar";
+import { CandidatePortfolioManager } from "@/components/candidate-portfolio-manager";
 import { DeleteCandidateButton } from "@/components/delete-candidate-button";
 import { StatusBadge } from "@/components/status-badge";
 import { ButtonLink } from "@/components/ui/button-link";
 import { getCandidate } from "@/lib/candidates/data";
+import { getCandidatePortfolio } from "@/lib/candidates/portfolio";
 import { formatDate } from "@/lib/utils";
 
 interface CandidateDetailPageProps {
@@ -25,6 +27,7 @@ interface CandidateDetailPageProps {
 export default async function CandidateDetailPage({ params }: CandidateDetailPageProps) {
   const { id } = await params;
   const candidate = await getCandidate(id);
+  const portfolio = await getCandidatePortfolio(id);
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-7 sm:px-7 sm:py-9 xl:px-10">
@@ -89,7 +92,9 @@ export default async function CandidateDetailPage({ params }: CandidateDetailPag
             ai_interview_questions: candidate.ai_interview_questions,
             ai_model: candidate.ai_model,
             ai_evaluated_at: candidate.ai_evaluated_at,
-          }} />
+          }} eligibility={portfolio.eligibility} />
+
+          <CandidatePortfolioManager resourceId={candidate.id} images={portfolio.images} eligibility={portfolio.eligibility} />
 
           <section className="rounded-xl border bg-surface p-5 sm:p-6">
             <h2 className="text-sm font-medium">スキル</h2>

@@ -224,7 +224,7 @@ export async function updateCandidateAction(
 
 export async function deleteCandidateAction(id: string) {
   if (!idSchema.safeParse(id).success) throw new Error("候補者IDが不正です。");
-  await requireUser();
+  const user = await requireUser();
   const supabase = await createClient();
   const { data: candidate, error: readError } = await supabase
     .from("candidates")
@@ -232,6 +232,11 @@ export async function deleteCandidateAction(id: string) {
     .eq("id", id)
     .single();
   if (readError) throw new Error(readError.message);
+  const { data: portfolioImages, error: portfolioError } = await supabase
+    .from("candidate_portfolio_images")
+    .select("storage_path")
+    .eq("candidate_id", id);
+  if (portfolioError) throw new Error(portfolioError.message);
 
   if (candidate.image_path) {
     const { error: storageError } = await supabase.storage
@@ -239,6 +244,14 @@ export async function deleteCandidateAction(id: string) {
       .remove([candidate.image_path]);
     if (storageError) throw new Error(storageError.message);
   }
+
+  const portfolioPaths = (portfolioImages ?? []).flatMap((image) => image.storage_path ? [image.storage_path] : []);
+  if (portfolioPaths.length) {
+    const { error: portfolioStorageError } = await supabase.storage.from("candidate-portfolio-images").remove(portfolioPaths);
+    if (portfolioStorageError) throw new Error(portfolioStorageError.message);
+  }
+
+  await supabase.from("audit_events").insert({ event_type: "candidate.deleted", resource_type: "candidate", resource_id: id, metadata: { legacy_image_deleted: Boolean(candidate.image_path), portfolio_images_deleted: portfolioPaths.length }, actor_id: user.id });
 
   const { error } = await supabase.from("candidates").delete().eq("id", id);
   if (error) throw new Error(error.message);

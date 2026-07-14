@@ -9,6 +9,7 @@ import {
   aiCriterionLabels,
   type Candidate,
 } from "@/types/candidate";
+import type { AiReviewEligibility } from "@/types/portfolio";
 
 type AiEvaluationCandidate = Pick<
   Candidate,
@@ -26,7 +27,7 @@ type AiEvaluationCandidate = Pick<
   | "ai_evaluated_at"
 >;
 
-export function AiEvaluationPanel({ candidate }: { candidate: AiEvaluationCandidate }) {
+export function AiEvaluationPanel({ candidate, eligibility }: { candidate: AiEvaluationCandidate; eligibility: AiReviewEligibility }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +66,7 @@ export function AiEvaluationPanel({ candidate }: { candidate: AiEvaluationCandid
           type="button"
           variant="secondary"
           className="sm:ml-auto"
-          disabled={pending || !candidate.image_path}
+          disabled={pending || !eligibility.eligible}
           onClick={evaluate}
         >
           {pending ? <RotateCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
@@ -73,9 +74,10 @@ export function AiEvaluationPanel({ candidate }: { candidate: AiEvaluationCandid
         </Button>
       </div>
 
-      {!candidate.image_path ? (
+      {!eligibility.eligible ? (
         <div className="px-6 py-10 text-center">
-          <p className="text-sm text-muted">AI採点には作品画像の登録が必要です。</p>
+          <p className="text-sm text-muted">AI採点の条件が揃っていません。</p>
+          {eligibility.reasons.length ? <p className="mt-2 text-xs text-muted">{eligibility.reasons.join(" / ")}</p> : null}
         </div>
       ) : hasEvaluation ? (
         <div className="space-y-6 p-5 sm:p-6">
