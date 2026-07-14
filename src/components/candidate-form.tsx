@@ -75,8 +75,17 @@ export function CandidateForm({ action, candidate }: CandidateFormProps) {
           <Field label="スキル" htmlFor="skills" error={error("skills")} hint="カンマまたは改行で区切って入力" className="sm:col-span-2">
             <textarea id="skills" name="skills" rows={3} defaultValue={candidate?.skills.join(", ") ?? ""} placeholder="3ds Max, Corona Renderer, V-Ray, Unreal Engine" className={fieldControlClass} />
           </Field>
+          <Field label="使用ソフト" htmlFor="software" error={error("software")} hint="カンマまたは改行で区切って入力" className="sm:col-span-2">
+            <input id="software" name="software" defaultValue={candidate?.software.join(", ") ?? ""} placeholder="3ds Max, Corona Renderer" className={fieldControlClass} />
+          </Field>
           <Field label="言語" htmlFor="languages" error={error("languages")} hint="カンマまたは改行で区切って入力" className="sm:col-span-2">
             <input id="languages" name="languages" defaultValue={candidate?.languages.join(", ") ?? ""} placeholder="Japanese, English" className={fieldControlClass} />
+          </Field>
+          <Field label="タグ" htmlFor="tags" error={error("tags")} hint="カンマ区切り">
+            <input id="tags" name="tags" defaultValue={candidate?.tags.join(", ") ?? ""} placeholder="night, retail" className={fieldControlClass} />
+          </Field>
+          <Field label="案件適性" htmlFor="project_fit_tags" error={error("project_fit_tags")} hint="カンマ区切り">
+            <input id="project_fit_tags" name="project_fit_tags" defaultValue={candidate?.project_fit_tags.join(", ") ?? ""} placeholder="luxury retail, hospitality" className={fieldControlClass} />
           </Field>
           <Field label="ポートフォリオURL" htmlFor="portfolio_url" error={error("portfolio_url")}>
             <input id="portfolio_url" name="portfolio_url" type="url" defaultValue={candidate?.portfolio_url ?? ""} placeholder="https://" className={fieldControlClass} />

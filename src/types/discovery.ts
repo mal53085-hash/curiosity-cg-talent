@@ -40,6 +40,12 @@ export type DiscoveryItem = {
   description: string | null;
   country: string | null;
   skills: string[];
+  software: string[];
+  languages: string[];
+  employment_types: string[];
+  work_location_preferences: string[];
+  tags: string[];
+  project_fit_tags: string[];
   thumbnail_url: string | null;
   portfolio_image_urls: string[];
   status: DiscoveryItemStatus;

@@ -149,7 +149,12 @@ async function approveItem(id: string, userId: string) {
     country: item.country || "Unknown",
     primary_role: item.title,
     skills: item.skills,
-    languages: [],
+    software: item.software ?? [],
+    languages: item.languages ?? [],
+    employment_types: item.employment_types ?? [],
+    work_location_preferences: item.work_location_preferences ?? [],
+    tags: item.tags ?? [],
+    project_fit_tags: item.project_fit_tags ?? [],
     status: "sourcing",
     rating: "unrated",
     portfolio_url: item.source_url,
@@ -183,7 +188,7 @@ async function approveItem(id: string, userId: string) {
       const extension = image.contentType === "image/jpeg" ? "jpg" : image.contentType.split("/")[1];
       const imagePath = `${candidate.id}/${crypto.randomUUID()}.${extension}`;
       const { error: imageError } = await supabase.storage.from("candidate-images").upload(imagePath, image.bytes, { contentType: image.contentType, upsert: false });
-      if (!imageError) await supabase.from("candidates").update({ image_path: imagePath }).eq("id", candidate.id);
+      if (!imageError) await supabase.from("candidates").update({ image_path: imagePath, work_image_count: 1 }).eq("id", candidate.id);
     } catch {
       // A remote thumbnail is optional. Approval remains human-controlled and can continue without it.
     }

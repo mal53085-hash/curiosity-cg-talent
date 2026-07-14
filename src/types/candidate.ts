@@ -38,7 +38,10 @@ export type Candidate = {
   primary_role: string;
   years_experience: number | null;
   skills: string[];
+  software: string[];
   languages: string[];
+  tags: string[];
+  project_fit_tags: string[];
   availability: string | null;
   status: CandidateStatus;
   rating: CandidateRating;
@@ -53,6 +56,10 @@ export type Candidate = {
   discovered_at?: string | null;
   discovery_item_id?: string | null;
   image_path: string | null;
+  work_image_count: number;
+  data_quality_score: number;
+  data_quality_missing: string[];
+  data_quality_updated_at: string | null;
   notes: string | null;
   ai_score: number | null;
   ai_summary: string | null;

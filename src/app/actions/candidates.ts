@@ -34,7 +34,10 @@ function rawCandidate(formData: FormData) {
     "primary_role",
     "years_experience",
     "skills",
+    "software",
     "languages",
+    "tags",
+    "project_fit_tags",
     "availability",
     "status",
     "rating",
@@ -60,7 +63,10 @@ function candidatePayload(input: CandidateInput, userId: string) {
     primary_role: input.primary_role,
     years_experience: input.years_experience === "" ? null : input.years_experience,
     skills: splitList(input.skills),
+    software: splitList(input.software),
     languages: splitList(input.languages),
+    tags: splitList(input.tags),
+    project_fit_tags: splitList(input.project_fit_tags),
     availability: nullable(input.availability),
     status: input.status,
     rating: input.rating,
@@ -140,7 +146,7 @@ export async function createCandidateAction(
       const imagePath = await uploadImage(insertedId, image);
       const { error: updateError } = await supabase
         .from("candidates")
-        .update({ image_path: imagePath })
+        .update({ image_path: imagePath, work_image_count: 1 })
         .eq("id", insertedId);
       if (updateError) {
         await supabase.storage.from("candidate-images").remove([imagePath]);
@@ -193,7 +199,7 @@ export async function updateCandidateAction(
         : current.image_path;
     const { error: updateError } = await supabase
       .from("candidates")
-      .update({ ...candidatePayload(parsed.data, user.id), image_path: imagePath })
+      .update({ ...candidatePayload(parsed.data, user.id), image_path: imagePath, work_image_count: imagePath ? 1 : 0 })
       .eq("id", id);
     if (updateError) throw updateError;
 
