@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import {
-  LayoutDashboard,
+  Home,
   BarChart3,
   ClipboardCheck,
   Gauge,
@@ -13,32 +13,45 @@ import {
   Radar,
   LogOut,
   Menu,
-  Search,
   Settings,
   SlidersHorizontal,
   Sparkles,
   Users,
+  UserPlus,
+  KanbanSquare,
+  Layers3,
   X,
 } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
 import { cn } from "@/lib/utils";
 
 const navigation = [
-  { href: "/dashboard", label: "ダッシュボード", icon: LayoutDashboard },
+  { href: "/dashboard", label: "Home", icon: Home },
+  { href: "/candidates", label: "Candidates", icon: Users },
+  { href: "/add-candidates", label: "Add Candidates", icon: UserPlus },
+  { href: "/hiring-pipeline", label: "Hiring Pipeline", icon: KanbanSquare },
+  { href: "/advanced", label: "Advanced", icon: Layers3 },
+  { href: "/settings", label: "Settings", icon: Settings },
+] as const;
+
+const advancedNavigation = [
   { href: "/scout", label: "AI Scout", icon: Sparkles },
   { href: "/visual-search", label: "Visual Search", icon: ScanSearch },
-  { href: "/data-quality", label: "データ品質", icon: BarChart3 },
-  { href: "/acquisition", label: "Acquisition", icon: Import },
   { href: "/discovery", label: "Discovery", icon: Radar },
-  { href: "/candidates", label: "候補者", icon: Users },
+  { href: "/acquisition", label: "Acquisition", icon: Import },
+  { href: "/data-quality", label: "Data Quality", icon: BarChart3 },
+  { href: "/calibration", label: "Evaluation", icon: SlidersHorizontal },
+  { href: "/search-quality", label: "Search Quality", icon: Gauge },
+  { href: "/production-validation", label: "Validation", icon: ClipboardCheck },
 ] as const;
 
 interface AppShellProps {
   children: ReactNode;
   userEmail: string;
+  uiMode: "simple" | "advanced";
 }
 
-export function AppShell({ children, userEmail }: AppShellProps) {
+export function AppShell({ children, userEmail, uiMode }: AppShellProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -62,9 +75,7 @@ export function AppShell({ children, userEmail }: AppShellProps) {
       </div>
 
       <nav className="flex-1 space-y-1 p-3" aria-label="メインナビゲーション">
-        <p className="px-3 pb-2 pt-3 text-[10px] font-medium tracking-[0.16em] text-[#9b9991] uppercase">
-          Workspace
-        </p>
+        <p className="px-3 pb-2 pt-3 text-[10px] font-medium tracking-[0.16em] text-[#9b9991] uppercase">Hiring</p>
         {navigation.map((item) => {
           const active =
             item.href === "/dashboard"
@@ -88,52 +99,14 @@ export function AppShell({ children, userEmail }: AppShellProps) {
           );
         })}
 
-        <p className="px-3 pb-2 pt-7 text-[10px] font-medium tracking-[0.16em] text-[#9b9991] uppercase">
-          Tools
-        </p>
-        <Link
-          href="/candidates?focus=search"
-          onClick={() => setIsOpen(false)}
-          className="flex h-10 items-center gap-3 rounded-lg px-3 text-sm text-muted transition-colors hover:bg-surface-muted hover:text-foreground"
-        >
-          <Search size={16} strokeWidth={1.7} />
-          候補者を検索
-        </Link>
-        <Link
-          href="/search-quality"
-          onClick={() => setIsOpen(false)}
-          className="flex h-10 items-center gap-3 rounded-lg px-3 text-sm text-muted transition-colors hover:bg-surface-muted hover:text-foreground"
-        >
-          <Gauge size={16} strokeWidth={1.7} />
-          検索品質
-        </Link>
-        <Link
-          href="/calibration"
-          onClick={() => setIsOpen(false)}
-          className="flex h-10 items-center gap-3 rounded-lg px-3 text-sm text-muted transition-colors hover:bg-surface-muted hover:text-foreground"
-        >
-          <SlidersHorizontal size={16} strokeWidth={1.7} />
-          評価基準
-        </Link>
-        <Link
-          href="/production-validation"
-          onClick={() => setIsOpen(false)}
-          className="flex h-10 items-center gap-3 rounded-lg px-3 text-sm text-muted transition-colors hover:bg-surface-muted hover:text-foreground"
-        >
-          <ClipboardCheck size={16} strokeWidth={1.7} />
-          本番検証
-        </Link>
-        <span className="flex h-10 cursor-not-allowed items-center gap-3 rounded-lg px-3 text-sm text-[#aaa8a0]">
-          <Settings size={16} strokeWidth={1.7} />
-          設定
-          <span className="ml-auto text-[9px] tracking-wide">SOON</span>
-        </span>
+        {uiMode === "advanced" ? <><p className="px-3 pb-2 pt-7 text-[10px] font-medium tracking-[0.16em] text-[#9b9991] uppercase">Advanced tools</p>{advancedNavigation.map((item) => <Link key={item.href} href={item.href} onClick={() => setIsOpen(false)} className={cn("flex h-10 items-center gap-3 rounded-lg px-3 text-sm transition-colors", pathname.startsWith(item.href) ? "bg-[#e9e7df] font-medium text-foreground" : "text-muted hover:bg-surface-muted hover:text-foreground")}><item.icon size={16} strokeWidth={1.7}/>{item.label}</Link>)}</> : null}
       </nav>
 
       <div className="border-t p-3">
         <div className="mb-2 px-3 py-2">
           <p className="truncate text-xs font-medium">{userEmail}</p>
           <p className="mt-1 text-[10px] text-muted">採用チーム</p>
+          <p className="mt-1 font-mono text-[9px] text-[#99978f]">{uiMode === "advanced" ? "ADVANCED" : "SIMPLE"} MODE</p>
         </div>
         <form action={logoutAction}>
           <button
