@@ -53,6 +53,9 @@
 | P45-08 | 4.5 | Production Validation | 本番確認の証跡を継続管理 | P0 | Done | P45-01〜07 | 14項目の結果・確認者・日時・証跡履歴を保存 | 秘密値を証跡へ書かない | `dc17513`, `96b64e4` |
 | P46-01 | 4.6 | Reference Privacy Mode | 企業の参考画像を恒久保存せず検索可能にする | P0 | Done | P4-01〜05 | 常時ON、Storage object 0、特徴抽出後の即時破棄、特徴量検索 | EXIF/thumbnail/cache/URL禁止、監査可能な破棄、OpenAI `store:false` | `5267f34`, `384a2ac`, `06dba3f` |
 | P46-02 | 4.6 | Feature-only Visual Search | 画像再取得なしで候補者を検索 | P0 | Done | P46-01 | 9分類特徴と16次元vectorだけで事前抽出・再評価 | 最大20名、機微情報非送信、自動不採用禁止 | `5267f34`, `384a2ac` |
+| P47-01 | 4.7 | Visual Search結果体験 | 完了後に結果を再表示・説明可能にする | P0 | Done | P46-02 | 6段階表示、自動遷移、Reference Analysis、母数表示、Empty State | 元画像非表示、派生指標の算出根拠を明示 | v0.4.7 |
+| P47-02 | 4.7 | 保存済み検索操作 | 検索資産を安全に再利用する | P0 | Done | P47-01 | 開く、特徴量再検索、複製、名前変更、確認付き削除 | 画像再取得なし、重要操作を監査 | v0.4.7 |
+| P47-03 | 4.7 | Curiosity Style Profile | 人が承認した視覚基準をversion管理 | P0 | Done | P47-01 | 明示保存、active/archive、Visual/Scout選択、候補者別結果表示 | 自動公式化禁止、所有者RLS、派生特徴のみ保存 | v0.4.7 |
 | P5-01 | 5 | 契約API連携 | 保存可能な発見経路を増やす | P0 | Backlog | 法務確認 | 契約・保存権・削除手順が文書化 | API規約を優先 | — |
 | P5-02 | 5 | ArtStation/CGArchitect/個人サイト | CG人材の発見範囲を拡大 | P1 | Backlog | P5-01 | 各ソースの上限付きInbox登録 | robots.txt・利用規約順守 | — |
 | P5-03 | 5 | Behance適法連携 | Behance候補を安定取得 | P1 | Blocked | 契約・保存権 | 規約を満たすAPI/手動運用を確定 | 無断クロール禁止 | — |
@@ -70,4 +73,4 @@
 
 ## 現在のリリースゲート
 
-Phase 4.5は2026-07-14に実装・DB適用済み。候補者が1名のため取込・権利管理・評価基準・検証記録の機能動作は確認できるが、検索精度は未評価。次のゲートは、`Acquisition`から公開情報を仮登録し、権利確認済み作品画像とDQ60以上を備えた候補を最低20名、推奨50名まで増やすことである。
+v0.4.7でVisual Searchの結果再表示とStyle Profile基盤まで実装。候補者が1名のため機能動作は確認できるが、順位・Precision・Style Profileの検索精度は未評価。次のゲートは、`Acquisition`から公開情報を仮登録し、権利確認済み作品画像とDQ60以上を備えた候補を最低20名、推奨50名まで増やすことである。

@@ -1,5 +1,15 @@
 # dig Release Notes
 
+## 2026-07-14 — v0.4.7 Visual Search result experience
+
+- 画像検証、特徴抽出、元画像破棄、候補事前選定、AI再ランキング、結果作成の6段階表示と段階別エラー
+- 検索完了後の`/visual-search/[searchId]`遷移、保存済み検索の開く・特徴量再検索・複製・名前変更・確認付き削除
+- 元画像なしのReference Analysis、12指標の算出根拠、Style Summary、水平バーによる静かな分析UI
+- Visual Fit / AI Overall / Scout Fit / Curiosity DNAの分離、候補母数1/20/50名ゲート、Acquisition / Discovery / CSV Empty State
+- 管理者の明示操作だけで作る`style_profiles` / `style_profile_versions`、所有者RLS、active/archive、監査イベント
+- Style ProfileをVisual Searchの特徴量再ランキング、AI Scout条件、候補者詳細の過去適合点へ接続
+- Reference Privacy Modeを維持し、再表示・複製・Profile保存・Scout連携で元画像を保存または再送信しない
+
 ## 2026-07-14 — Visual Search result experience fix
 
 - Visual Search完了後に`/visual-search/[id]`へ自動遷移

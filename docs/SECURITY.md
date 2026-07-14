@@ -58,6 +58,9 @@
 - ユーザー単位10分3回、1日上限は`VISUAL_SEARCH_DAILY_LIMIT`（既定10）、候補再評価20名、結果10名。
 - OpenAIには参考画像、検索条件、候補者UUID、公開プロフィール、スキル/ソフト、既存の画像ベース8軸評価、強み/懸念/推奨案件だけを送る。メール、電話、住所、社内メモ、認証IDは送らない。
 - 人物特定、顔認識、センシティブ属性推定、自動不採用を禁止し、Structured OutputsをZod検証する。
+- Style Profileは管理者の明示操作時だけ作成し、元画像・サムネイル・URL・EXIFを含めない。保存対象は検証済み派生特徴、16次元vector、評価weights、model version、作成者・日時に限定する。
+- Style Profileの再検索とAI Scout連携は所有者RLSを通過したactive profileだけを扱う。OpenAIへ送るのは派生特徴と許可済み候補公開情報で、元画像・連絡先・社内メモを送らない。
+- Visual SearchのAPIレスポンスは`no-store`、Responses APIは`store:false`。open/rerun/duplicate/deleteとStyle Profile create/update/archiveを`audit_events`へ記録する。
 
 ## Candidate Acquisition / 作品画像境界
 

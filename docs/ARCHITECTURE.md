@@ -65,6 +65,20 @@ OpenAIへ送る候補情報は、候補者ID、公開プロフィール、職種
 
 `visual_searches`削除時は外部キー削除連動で特徴量/run/result行を削除する。日次Cronも期限切れの派生データを削除し、`audit_events`へ件数だけを残す。画像復元・再ダウンロード・署名URL生成の経路は存在しない。旧`visual-search-*` bucketは空の互換資産で、v0.4.6 migrationが所有者Storage policyを削除するため新規uploadには使えない。
 
+## v0.4.7 Reference Analysis / Style Profile
+
+`/visual-search/[id]`は、所有者の保存済み特徴量をServer Componentで取得し、実測数値と記述カバレッジだけから12指標とスタイル要約を構成する。品質値が存在しないLighting / Composition / Material / Colorは特徴記述のカバレッジとして明示し、未確認能力を補完しない。
+
+`style_profiles`は人が承認した名前・説明・active/archive状態、`style_profile_versions`は不変の派生特徴・vector・weights・model versionを保持する。Visual SearchはProfileから特徴レコードを複製して再ランキングでき、AI Scoutは自然言語条件とProfile特徴を上位20名の再評価時だけ組み合わせる。候補者詳細のProfile適合点は既存`visual_search_results`を参照し、別の重複結果テーブルを作らない。
+
+```text
+保存済みvisual_search_images（特徴量のみ）
+  -> 管理者が明示保存
+  -> style_profiles / style_profile_versions
+  -> Visual Search再ランキング または AI Scout条件
+  -> visual_search_results / scout_results
+```
+
 ## 非機能要件
 
 - 1回の候補抽出は最大50件、OpenAI再ランキングは最大20件、表示は最大10件。
