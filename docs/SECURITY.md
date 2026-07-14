@@ -48,4 +48,4 @@
 
 - Vercelログを`CRON_SECRET`、`SUPABASE_SECRET_KEY`、`OPENAI_API_KEY`、`Bearer`、`sk-`、`sb_secret_`のパターンで確認する。
 - Supabase Security/Performance Advisorをmigration適用後とリリース前に確認する。
-- 2026-07-14時点のLeaked Password Protection警告はコードではなくSupabase DashboardのAttack Protection設定で解消する。
+- 2026-07-14の最終確認では重大指摘0。Leaked Password Protectionを有効化済みとの申告後もAdvisor APIは警告を返している。DashboardのAttack Protection設定・対象プロジェクト・反映待ちを再確認する運用課題であり、アプリコードやmigrationの問題として扱わない。

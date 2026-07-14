@@ -1,6 +1,6 @@
 # dig Release Notes
 
-## Unreleased — Phase 3 AI Scout
+## 2026-07-14 — Phase 3 AI Scout
 
 - 自然言語要件の構造化フィルター変換
 - Supabase候補の事前絞り込みとOpenAI再ランキング
@@ -9,6 +9,11 @@
 - `scout_searches`、`scout_runs`、`scout_results`と所有者RLS
 - ユーザー単位レート制限、入力上限、Prompt Injection拒否、Zod Structured Outputs
 - 正常系、Empty State、異常なAI出力、機密フィールド境界の自動テスト
+- 本番で自然言語検索、1件ランキング、比較、保存履歴、日英4種の文面生成を確認
+- Prompt Injection入力をHTTP 400で拒否し、利用者向けメッセージを表示
+- 390px指定で横方向の溢れなし、モバイルナビゲーションと主要操作を確認
+- `lint`、`typecheck`、`build`、`check`、4テスト、`npm audit`（脆弱性0）に合格
+- 本番deployment: `a24f935` / Ready
 
 ## 2026-07-14 — Phase 2 Discovery
 
@@ -28,5 +33,5 @@
 
 ## 既知の運用課題
 
-- Supabase Security AdvisorのLeaked Password Protection警告はDashboardのAttack Protection設定で解消する。アプリコードのmigrationでは変更しない。
+- Supabase Security Advisorは重大指摘0。Leaked Password Protectionを有効化済みとの申告後もAdvisor APIが警告を返しているため、Dashboard設定の反映状態を再確認する。これはアプリコードやmigrationの問題ではない。
 - 未使用indexのPerformance Advisor情報はデータ量が少ない初期段階では削除せず、実利用統計を蓄積して再評価する。
