@@ -134,24 +134,13 @@ export function CandidateForm({ action, candidate }: CandidateFormProps) {
           <span className="grid size-8 place-items-center rounded-lg bg-[#e7e5dd] text-[#57564f]"><Sparkles size={15} /></span>
           <div>
             <h2 className="text-sm font-medium">AI評価</h2>
-            <p className="mt-0.5 text-xs text-muted">ポートフォリオ評価結果を記録</p>
+            <p className="mt-0.5 text-xs text-muted">作品画像とプロフィールを自動分析</p>
           </div>
-          <span className="ml-auto rounded-full border bg-surface px-2 py-1 text-[9px] tracking-[0.12em] text-muted uppercase">Preview</span>
         </div>
-        <div className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
-          <Field label="AIスコア（0〜100）" htmlFor="ai_score" error={error("ai_score")}>
-            <input id="ai_score" name="ai_score" type="number" min="0" max="100" defaultValue={candidate?.ai_score ?? ""} className={fieldControlClass} />
-          </Field>
-          <div className="hidden sm:block" />
-          <Field label="評価サマリー" htmlFor="ai_summary" error={error("ai_summary")} className="sm:col-span-2">
-            <textarea id="ai_summary" name="ai_summary" rows={4} defaultValue={candidate?.ai_summary ?? ""} placeholder="構図、ライティング、マテリアル表現、ブランド理解などの総評" className={fieldControlClass} />
-          </Field>
-          <Field label="強み" htmlFor="ai_strengths" error={error("ai_strengths")} hint="カンマまたは改行で区切って入力">
-            <textarea id="ai_strengths" name="ai_strengths" rows={3} defaultValue={candidate?.ai_strengths.join(", ") ?? ""} className={fieldControlClass} />
-          </Field>
-          <Field label="確認ポイント / リスク" htmlFor="ai_risks" error={error("ai_risks")} hint="カンマまたは改行で区切って入力">
-            <textarea id="ai_risks" name="ai_risks" rows={3} defaultValue={candidate?.ai_risks.join(", ") ?? ""} className={fieldControlClass} />
-          </Field>
+        <div className="p-5 sm:p-6">
+          <p className="text-sm leading-7 text-muted">
+            候補者を保存後、詳細画面の「AIで採点」から評価を実行できます。AI評価は参考情報であり、採用判断は人が行います。
+          </p>
         </div>
       </section>
 

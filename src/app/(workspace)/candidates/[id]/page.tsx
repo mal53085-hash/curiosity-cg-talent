@@ -1,9 +1,7 @@
-import Link from "next/link";
 import {
   ArrowUpRight,
   BriefcaseBusiness,
   ChevronLeft,
-  CircleAlert,
   Edit3,
   ExternalLink,
   Globe2,
@@ -11,8 +9,8 @@ import {
   Mail,
   MapPin,
   Phone,
-  Sparkles,
 } from "lucide-react";
+import { AiEvaluationPanel } from "@/components/ai-evaluation-panel";
 import { CandidateAvatar } from "@/components/candidate-avatar";
 import { DeleteCandidateButton } from "@/components/delete-candidate-button";
 import { StatusBadge } from "@/components/status-badge";
@@ -78,57 +76,20 @@ export default async function CandidateDetailPage({ params }: CandidateDetailPag
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_330px] xl:grid-cols-[1fr_380px]">
         <div className="space-y-6">
-          <section className="rounded-xl border bg-surface">
-            <div className="flex items-center gap-3 border-b bg-[#f8f7f2] px-5 py-4 sm:px-6">
-              <span className="grid size-8 place-items-center rounded-lg bg-[#e7e5dd] text-[#57564f]"><Sparkles size={15} /></span>
-              <div>
-                <h2 className="text-sm font-medium">AI評価</h2>
-                <p className="mt-0.5 text-xs text-muted">ポートフォリオの総合分析</p>
-              </div>
-              <span className="ml-auto rounded-full border bg-surface px-2 py-1 text-[9px] tracking-[0.12em] text-muted uppercase">Preview</span>
-            </div>
-            {candidate.ai_summary || candidate.ai_strengths.length || candidate.ai_risks.length ? (
-              <div className="p-5 sm:p-6">
-                {candidate.ai_summary ? (
-                  <p className="text-sm leading-7 text-[#4e4d48]">{candidate.ai_summary}</p>
-                ) : null}
-                <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-lg border bg-[#faf9f5] p-4">
-                    <h3 className="text-xs font-medium">強み</h3>
-                    {candidate.ai_strengths.length ? (
-                      <ul className="mt-3 space-y-2">
-                        {candidate.ai_strengths.map((strength) => (
-                          <li key={strength} className="flex gap-2 text-xs leading-5 text-muted">
-                            <span className="mt-2 size-1 shrink-0 rounded-full bg-[#596d5d]" /> {strength}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : <p className="mt-3 text-xs text-muted">未入力</p>}
-                  </div>
-                  <div className="rounded-lg border bg-[#faf9f5] p-4">
-                    <h3 className="flex items-center gap-1.5 text-xs font-medium"><CircleAlert size={13} /> 確認ポイント</h3>
-                    {candidate.ai_risks.length ? (
-                      <ul className="mt-3 space-y-2">
-                        {candidate.ai_risks.map((risk) => (
-                          <li key={risk} className="flex gap-2 text-xs leading-5 text-muted">
-                            <span className="mt-2 size-1 shrink-0 rounded-full bg-[#8b6957]" /> {risk}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : <p className="mt-3 text-xs text-muted">未入力</p>}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="px-6 py-12 text-center">
-                <Sparkles size={20} className="mx-auto text-[#aaa89f]" />
-                <p className="mt-4 text-sm text-muted">AI評価はまだ登録されていません。</p>
-                <Link href={`/candidates/${candidate.id}/edit`} className="mt-2 inline-flex text-xs underline underline-offset-4">
-                  評価情報を追加
-                </Link>
-              </div>
-            )}
-          </section>
+          <AiEvaluationPanel candidate={{
+            id: candidate.id,
+            image_path: candidate.image_path,
+            ai_score: candidate.ai_score,
+            ai_scores: candidate.ai_scores,
+            ai_summary: candidate.ai_summary,
+            ai_reasoning: candidate.ai_reasoning,
+            ai_strengths: candidate.ai_strengths,
+            ai_risks: candidate.ai_risks,
+            ai_recommended_projects: candidate.ai_recommended_projects,
+            ai_interview_questions: candidate.ai_interview_questions,
+            ai_model: candidate.ai_model,
+            ai_evaluated_at: candidate.ai_evaluated_at,
+          }} />
 
           <section className="rounded-xl border bg-surface p-5 sm:p-6">
             <h2 className="text-sm font-medium">スキル</h2>

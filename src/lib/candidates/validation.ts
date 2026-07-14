@@ -24,10 +24,6 @@ export const candidateSchema = z.object({
   portfolio_url: optionalUrl,
   source_url: optionalUrl,
   notes: z.string().trim().max(10000).optional().default(""),
-  ai_score: z.union([z.literal(""), z.coerce.number().int().min(0).max(100)]),
-  ai_summary: z.string().trim().max(5000).optional().default(""),
-  ai_strengths: optionalText,
-  ai_risks: optionalText,
 });
 
 export type CandidateInput = z.infer<typeof candidateSchema>;

@@ -41,10 +41,6 @@ function rawCandidate(formData: FormData) {
     "portfolio_url",
     "source_url",
     "notes",
-    "ai_score",
-    "ai_summary",
-    "ai_strengths",
-    "ai_risks",
   ] as const;
 
   return Object.fromEntries(names.map((name) => [name, String(formData.get(name) ?? "")]));
@@ -67,10 +63,6 @@ function candidatePayload(input: CandidateInput, userId: string) {
     portfolio_url: nullable(input.portfolio_url),
     source_url: nullable(input.source_url),
     notes: nullable(input.notes),
-    ai_score: input.ai_score === "" ? null : input.ai_score,
-    ai_summary: nullable(input.ai_summary),
-    ai_strengths: splitList(input.ai_strengths),
-    ai_risks: splitList(input.ai_risks),
     updated_by: userId,
   };
 }
