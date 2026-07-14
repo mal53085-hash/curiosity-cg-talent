@@ -87,7 +87,7 @@ export async function POST(request: Request) {
         model: scoutModel,
         completed_at: new Date().toISOString(),
       }).eq("id", run.id);
-      return Response.json({ run_id: run.id, filters, results: [] });
+      return Response.json({ run_id: run.id, search_id: searchId, filters, results: [] });
     }
 
     const rankings = await rerankCandidates({ query: parsedBody.data.query, filters, candidates: pool, userId: authData.user.id });
@@ -140,7 +140,7 @@ export async function POST(request: Request) {
       completed_at: new Date().toISOString(),
     }).eq("id", run.id);
     if (completeError) throw new Error("SCOUT_RUN_COMPLETE_FAILED");
-    return Response.json({ run_id: run.id, filters, results });
+    return Response.json({ run_id: run.id, search_id: searchId, filters, results });
   } catch {
     await supabase.from("scout_runs").update({
       status: "failed",

@@ -17,7 +17,7 @@ type ScoutRunSummary = {
   started_at: string;
 };
 
-type SearchResponse = { run_id: string; filters: ScoutFilters; results: ScoutResultView[]; error?: string };
+type SearchResponse = { run_id: string; search_id: string | null; filters: ScoutFilters; results: ScoutResultView[]; error?: string };
 
 const examples = [
   "TASAKIの高級店舗案件に向く人",
@@ -80,6 +80,7 @@ export function ScoutWorkspace({ initialSearches, initialRuns }: { initialSearch
       const data = await apiResponse.json() as SearchResponse;
       if (!apiResponse.ok) throw new Error(data.error || "検索できませんでした。");
       setResponse(data);
+      setActiveSearchId(data.search_id);
       router.refresh();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "検索できませんでした。");
@@ -127,8 +128,8 @@ export function ScoutWorkspace({ initialSearches, initialRuns }: { initialSearch
       <div className="min-w-0 space-y-6">
         <form onSubmit={runSearch} className="rounded-2xl border bg-surface p-5 shadow-[0_14px_45px_rgba(35,34,30,0.04)] sm:p-7">
           <label htmlFor="scout-query" className="text-sm font-medium">どんな人を探していますか？</label>
-          <textarea id="scout-query" value={query} onChange={(event) => { setQuery(event.target.value); setActiveSearchId(null); }} required minLength={5} maxLength={1200} rows={5} placeholder="例：ラグジュアリーホテルの夜景内装に強く、Coronaを使える人" className={`${fieldControlClass} mt-3 resize-y text-base leading-7`} />
-          <div className="mt-4 flex flex-wrap gap-2">{examples.map((example) => <button key={example} type="button" onClick={() => { setQuery(example); setActiveSearchId(null); }} className="rounded-full border bg-[#faf9f5] px-3 py-1.5 text-[11px] text-muted transition hover:border-[#aaa89f] hover:text-foreground">{example}</button>)}</div>
+          <textarea id="scout-query" value={query} onChange={(event) => { setQuery(event.target.value); setActiveSearchId(null); setSaveName(""); }} required minLength={5} maxLength={1200} rows={5} placeholder="例：ラグジュアリーホテルの夜景内装に強く、Coronaを使える人" className={`${fieldControlClass} mt-3 resize-y text-base leading-7`} />
+          <div className="mt-4 flex flex-wrap gap-2">{examples.map((example) => <button key={example} type="button" onClick={() => { setQuery(example); setActiveSearchId(null); setSaveName(""); }} className="rounded-full border bg-[#faf9f5] px-3 py-1.5 text-[11px] text-muted transition hover:border-[#aaa89f] hover:text-foreground">{example}</button>)}</div>
           <div className="mt-5 grid gap-4 border-t pt-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
             <label className="text-xs text-muted">検索名（任意）<input value={saveName} disabled={Boolean(activeSearchId)} onChange={(event) => setSaveName(event.target.value)} maxLength={120} placeholder={activeSearchId ? "保存済み検索を更新します" : "例：TASAKI retail shortlist"} className={`${fieldControlClass} mt-2`} /></label>
             <button type="submit" disabled={loading || query.trim().length < 5} className={buttonStyles("primary", "h-11 px-6")}><Search size={15} />{loading ? "条件を解析・検索中…" : "候補者を探す"}</button>
