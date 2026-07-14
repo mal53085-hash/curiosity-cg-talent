@@ -4,6 +4,7 @@ import sharp from "sharp";
 import { MAX_VISUAL_IMAGE_BYTES, sanitizeVisualImage } from "../src/lib/visual-search/image";
 import { aggregateVisualFeatures, buildVisualFeatureVector, featureRecord } from "../src/lib/visual-search/features";
 import { resolveVisualResultScores } from "../src/lib/visual-search/result-scores";
+import { buildEvaluationWeights, buildReferenceAnalysis } from "../src/lib/visual-search/reference-analysis";
 import { visualFeaturesSchema, visualRankingSchema } from "../src/types/visual-search";
 
 const validFeatures = { space_types: ["retail"], composition: ["central"], camera_position: ["eye level"], field_of_view: ["wide"], lighting: ["soft"], time_of_day: "night" as const, artificial_lighting: ["warm"], color_tone: ["neutral"], contrast: ["low"], materials: ["stone"], luxury_level: 90, brand_tones: ["quiet"], detail_density: 80, photorealism: 90, hospitality_fit: 60, retail_fit: 90, exterior_interior: "interior" as const, quiet_drama: 20, summary: "test", uncertainties: [] };
@@ -57,4 +58,20 @@ test("new visual ranking output requires all eight explainable fit dimensions", 
 test("legacy saved results receive deterministic display fallbacks", () => {
   const scores = resolveVisualResultScores({ visual_fit_score: 80 }, { lighting: 90, composition: 70, materials: 75, luxury_brand_fit: 85, retail_fit: 88, finish: 78 });
   assert.deepEqual(scores, { visual_fit_score: 80, brand_dna_match: 83, lighting: 90, composition: 70, material: 75, luxury_brand_fit: 85, display_design: 88, color_control: 78, visual_silence: 82 });
+});
+
+test("reference analysis maps only stored structured features to explainable metrics", () => {
+  const analysis = buildReferenceAnalysis([validFeatures]);
+  assert.equal(analysis.metrics.length, 12);
+  assert.equal(analysis.metrics.find((metric) => metric.key === "luxury_brand_fit")?.value, 90);
+  assert.equal(analysis.metrics.find((metric) => metric.key === "visual_silence")?.value, 80);
+  assert.match(analysis.metrics.find((metric) => metric.key === "lighting_design")?.basis ?? "", /カバレッジ/);
+  assert.equal("image" in analysis.aggregate, false);
+});
+
+test("style profile weights only increase explicitly prioritized dimensions", () => {
+  const weights = buildEvaluationWeights(["Lighting", "Visual Silence"]);
+  assert.equal(weights.lighting, 1.5);
+  assert.equal(weights.visual_silence, 1.5);
+  assert.equal(weights.composition, 1);
 });
