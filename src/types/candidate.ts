@@ -14,6 +14,20 @@ export const candidateRatings = ["unrated", "A+", "A", "B+", "B", "C"] as const;
 export type CandidateStatus = (typeof candidateStatuses)[number];
 export type CandidateRating = (typeof candidateRatings)[number];
 
+export const aiCriterionKeys = [
+  "composition",
+  "lighting",
+  "materials",
+  "luxury_brand_fit",
+  "interior_understanding",
+  "detail",
+  "finish",
+  "technical_adaptability",
+] as const;
+
+export type AiCriterionKey = (typeof aiCriterionKeys)[number];
+export type AiScores = Partial<Record<AiCriterionKey, number>>;
+
 export type Candidate = {
   id: string;
   full_name: string;
@@ -36,6 +50,12 @@ export type Candidate = {
   ai_summary: string | null;
   ai_strengths: string[];
   ai_risks: string[];
+  ai_scores: AiScores;
+  ai_reasoning: string | null;
+  ai_recommended_projects: string[];
+  ai_interview_questions: string[];
+  ai_model: string | null;
+  ai_evaluated_at: string | null;
   created_by: string;
   updated_by: string | null;
   created_at: string;
@@ -61,4 +81,15 @@ export const ratingLabels: Record<CandidateRating, string> = {
   "B+": "B+",
   B: "B",
   C: "C",
+};
+
+export const aiCriterionLabels: Record<AiCriterionKey, string> = {
+  composition: "構図",
+  lighting: "ライティング",
+  materials: "マテリアル",
+  luxury_brand_fit: "高級ブランド適性",
+  interior_understanding: "インテリア理解",
+  detail: "ディテール",
+  finish: "仕上げ",
+  technical_adaptability: "技術適応力",
 };
