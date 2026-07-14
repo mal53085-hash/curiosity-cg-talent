@@ -6,7 +6,8 @@ Supabase project: `vrfsaasawsgwxzgsnatk`
 ## 実施原則
 
 - 本番で実施した確認だけを`本番検証`画面へ記録する。
-- ステータスは未実施、成功、失敗、再確認必要のいずれかを選ぶ。
+- 各カードの実施手順と期待結果を確認し、実結果を入力してから、未実施、成功、失敗、再確認必要のいずれかを選ぶ。
+- テストデータ名は`PV-YYYYMMDD-HHMM`とし、対象resource IDを実結果へ記録して終了後に削除する。
 - 証跡には時刻、画面/API、HTTP status、run IDなどを記録し、APIキー、Bearer token、Cookie、個人連絡先を書かない。
 - 失敗を成功で上書きせず、再実行ごとに履歴を追加する。
 - 実候補者が少ない場合、機能動作確認と検索精度評価を分ける。
@@ -21,22 +22,23 @@ Supabase project: `vrfsaasawsgwxzgsnatk`
 
 ## チェック項目と証跡
 
-| 項目 | 成功条件 | 証跡例 |
-|---|---|---|
-| 認証済み画像アップロード | ログイン時のみ許可、WebP保存、EXIF除去 | image ID、時刻 |
-| 実画像Visual Search | 1〜5枚でrun成功、最大10結果 | visual run ID |
-| AI Scout 3名比較 | DBに3名以上あるとき比較可能 | scout run ID |
-| Visual Search 3名以上比較 | 結果3名以上のとき表示可能 | visual run ID |
-| 429レート制限 | 上限超過で安全な429表示 | endpoint、時刻 |
-| OpenAI 503処理 | 秘密値/内部エラーを出さず再試行案内 | HTTP status、画面文言 |
-| Storage期限切れCron | 期限切れ画像・派生データ・quarantine削除 | cron時刻、削除件数 |
-| 削除時Storage連動 | 候補/検索削除でStorage objectも消える | resource ID |
-| 監査ログ | 取込、権利変更、AI、削除、検証を記録 | audit event ID/type |
-| Vercel秘密情報ログ | 秘密パターンがログにない | 確認期間 |
-| モバイル表示 | 390pxで横溢れなし、主要操作可能 | screenshot/時刻 |
-| CSVエラー処理 | 不正列/URL/101件を登録せず表示 | batch/テスト名 |
-| URL一括登録 | プレビュー後に新規だけInbox登録 | batch ID |
-| 重複処理 | batch/Discovery/candidate重複を区別 | duplicate count |
+本番画面に次の15項目について、実施手順、期待結果、実結果、状態、証跡メモを表示・履歴保存する。
+
+1. 候補者・Discovery候補への実画像アップロード
+2. JPEG・PNG・WebPの正常登録
+3. SVG・偽装MIME・8MB超過の拒否
+4. `unknown`／`link_only`画像のAI送信拒否
+5. 許可済み実画像によるAI本評価
+6. Visual Searchへの実画像アップロードと検索
+7. AI Scoutの実検索
+8. 候補者・検索削除時のStorage連動削除
+9. 期限切れ画像削除Cronの認証付き実行
+10. `audit_events`への記録
+11. 429レート制限
+12. OpenAIエラー時の安全な表示
+13. 390pxモバイル表示
+14. CSVエラー処理
+15. URL一括登録と重複処理
 
 ## セキュリティ異常系
 

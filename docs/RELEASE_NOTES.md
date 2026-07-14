@@ -1,5 +1,11 @@
 # dig Release Notes
 
+## 2026-07-14 — Production Validation runbook completion
+
+- 本番検証を15項目へ再編し、各項目に実施手順と期待結果を画面表示
+- 実結果を検証履歴へ独立保存し、状態・証跡メモ・確認者・確認日時と一緒に管理
+- `PV-YYYYMMDD-HHMM`によるテストデータ識別と終了後削除、秘密値を証跡へ残さない注意を画面へ追加
+
 ## 2026-07-14 — Phase 4.5 Candidate Acquisition & Production Validation
 
 - URL一括（最大100）、汎用CSV列マッピング・プレビュー・エラー/重複確認、手動簡易登録
@@ -9,7 +15,7 @@
 - private `candidate-portfolio-images`、magic bytes、実デコード、WebP再エンコード、EXIF除去、Storage連動削除
 - DQ60、公開プロフィール、見送り/重複除外、許可済み保存画像によるAI Review Eligibility
 - Curiosity 12軸rubricのversion管理、AI評価へのversion保存、Review SamplingとAI/人間差
-- Search Qualityの20/50名ゲート、Precision、人間差、検索別候補数、14項目の本番検証履歴
+- Search Qualityの20/50名ゲート、Precision、人間差、検索別候補数、15項目の本番検証履歴
 - Phase 4.5 migration 8テーブル、RLS、private bucket、Storage policy、Advisor indexを本番適用
 - 自動テストはCSV 100件、重複、private/metadata URL、unknown画像拒否、50名相当性能を含む15件に合格
 - 実候補者は1名のため検索精度は未評価。機能検証と精度評価を分離して継続する
