@@ -37,6 +37,7 @@ type EvaluationCandidate = {
   skills: string[];
   languages: string[];
   portfolioUrl: string | null;
+  publicDescription?: string | null;
 };
 
 let openaiClient: OpenAI | null = null;
@@ -66,6 +67,7 @@ export async function evaluateCandidate({
     skills: candidate.skills,
     languages: candidate.languages,
     portfolio_url: candidate.portfolioUrl,
+    public_portfolio_description: candidate.publicDescription ?? null,
   };
   const imageDataUrl = `data:${imageMimeType};base64,${Buffer.from(image).toString("base64")}`;
   const safetyIdentifier = createHash("sha256").update(userId).digest("hex");
