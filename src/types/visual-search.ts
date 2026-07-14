@@ -13,6 +13,9 @@ export const visualFeaturesSchema = z.object({
 });
 export type VisualFeatures = z.infer<typeof visualFeaturesSchema>;
 
+export const visualFeatureVectorSchema = z.array(z.number().min(0).max(1)).length(16);
+export type VisualFeatureVector = z.infer<typeof visualFeatureVectorSchema>;
+
 export const visualRankingSchema = z.object({ results: z.array(z.object({
   candidate_id: z.string().uuid(), visual_fit_score: z.number().int().min(0).max(100),
   similar_features: z.array(short).min(1).max(8), different_features: z.array(short).max(8),
